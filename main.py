@@ -76,7 +76,7 @@ SERPER_API_KEY = os.getenv("SERPER_API_KEY", "YOUR_SERPER_API_KEY_HERE")
 #   "google/gemma-3-27b-it"                  (free tier)
 #   "anthropic/claude-3.5-haiku"             (paid, fast & smart)
 #   "openai/gpt-4o"                          (paid, most capable)
-MODEL = os.getenv("MODEL", "anthropic/claude-3.5-haiku")
+MODEL = os.getenv("MODEL", "openai/gpt-4o-mini")
 
 # OpenRouter base URL (OpenAI-compatible)
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
