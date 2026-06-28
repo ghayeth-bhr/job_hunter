@@ -37,11 +37,14 @@ async def run_endpoint(
     cv: UploadFile = File(...),
     model: str = Form("openai/gpt-4o-mini"),
     locations: str = Form(""),
+    enable_email: str = Form("false"),
 ):
     task_id = uuid.uuid4().hex[:12]
     save_path = UPLOAD_DIR / f"{task_id}_{cv.filename}"
     with open(save_path, "wb") as f:
         f.write(await cv.read())
+
+    os.environ["ENABLE_EMAIL"] = enable_email
 
     pipeline.reconfigure(
         model=model,

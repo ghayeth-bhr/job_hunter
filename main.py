@@ -33,6 +33,7 @@ load_dotenv()
 from tools.crawl4ai_scraper import scrape_job_listings
 from tools.company_enricher import enrich_companies, merge_enrichment_into_jobs
 from tools.direct_board_crawler import discover_jobs_direct
+from tools.email_sender import send_report_email
 from prompts.scoring_agent import SCORING_SYSTEM_PROMPT
 
 import requests
@@ -869,8 +870,20 @@ async def run_pipeline(cv_path: str) -> dict:
         ),
     )
 
-    # ── Step 5: Report writer (unchanged — called inside write_opportunities_report)
+    # ── Step 5: Report writer
     print("\n📝 Step 5/5: Report written to disk.")
+
+    # ── Step 6: Optional email report ─────────────────────────────────────────
+    email_result = {}
+    if os.getenv("ENABLE_EMAIL", "false").lower() == "true":
+        print("\n📧 Step 6/6: Sending report via email...")
+        json_match = re.search(r"JSON\s*:\s*(.+?\.json)", scored_result)
+        if json_match:
+            json_path = json_match.group(1).strip()
+            subject = f"EU Job Hunter Report — {datetime.now().strftime('%Y-%m-%d')}"
+            email_result = send_report_email(subject, json_path)
+        else:
+            print("   ⚠️  Could not find JSON report path")
 
     print("\n" + "═" * 62)
     print("✅  PIPELINE COMPLETE")
@@ -881,6 +894,7 @@ async def run_pipeline(cv_path: str) -> dict:
     return {
         "output": scored_result,
         "total_jobs": len(all_jobs),
+        "email": email_result,
     }
 
 

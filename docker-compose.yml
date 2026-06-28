@@ -10,6 +10,9 @@ services:
     environment:
       - OUTPUT_DIR=/app/reports
       - CRAWL4AI_CACHE_DIR=/app/crawl4ai_cache
+      - ENABLE_EMAIL=${ENABLE_EMAIL:-false}
+      - SENDGRID_FROM_EMAIL=${SENDGRID_FROM_EMAIL:-}
+      - SENDGRID_TO_EMAIL=${SENDGRID_TO_EMAIL:-}
     volumes:
       - reports_data:/app/reports
       - uploads_data:/app/uploads
