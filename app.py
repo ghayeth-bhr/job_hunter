@@ -125,8 +125,18 @@ async def _run_pipeline(
         result_holder["error"] = f"{type(e).__name__}: {e}\n{traceback.format_exc()}"
         await queue.put("__ERROR__")
     finally:
+        # Keep result in tasks dict for 60s so SSE can still retrieve it
+        # without racing the cleanup. The queue is consumed by the stream,
+        # so the only data left is the result_holder dict.
         if task_id in tasks:
-            del tasks[task_id]
+            tasks[task_id]["done"] = True
+
+            # Clean up after 60 seconds
+            async def _cleanup():
+                await asyncio.sleep(60)
+                tasks.pop(task_id, None)
+
+            asyncio.create_task(_cleanup())
 
 
 OUTPUT_DIR = Path(os.getenv("OUTPUT_DIR", "./Ali_out"))
