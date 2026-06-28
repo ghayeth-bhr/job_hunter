@@ -1,0 +1,53 @@
+{
+  "name": "Job Listings",
+  "baseSelector": "html",
+  "fields": [
+    {
+      "name": "job_title",
+      "selector": "h1",
+      "type": "text"
+    },
+    {
+      "name": "company_name",
+      "selector": "p.company",
+      "type": "text"
+    },
+    {
+      "name": "location",
+      "selector": "span.location",
+      "type": "text"
+    },
+    {
+      "name": "salary_estimate",
+      "selector": "span.salary",
+      "type": "text"
+    },
+    {
+      "name": "full_job_description",
+      "selector": "div.description",
+      "type": "text"
+    },
+    {
+      "name": "required_skills",
+      "type": "list",
+      "selector": "ul.skills li",
+      "fields": [
+        {
+          "name": "skill",
+          "selector": ".",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "job_type",
+      "selector": "span.type",
+      "type": "text"
+    },
+    {
+      "name": "posted_date",
+      "selector": "span.date",
+      "type": "text"
+    }
+  ]
+}

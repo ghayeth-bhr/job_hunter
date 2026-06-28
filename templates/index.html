@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EU Job Hunter</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary: #4F46E5;
+    --primary-light: #818CF8;
+    --primary-dark: #3730A3;
+    --surface: #FFFFFF;
+    --bg: #F1F5F9;
+    --text: #0F172A;
+    --text-secondary: #64748B;
+    --border: #E2E8F0;
+    --radius: 12px;
+  }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  .header {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: white;
+    padding: 32px 24px;
+    text-align: center;
+  }
+  .header h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+  .header p { margin-top: 6px; font-size: 14px; opacity: 0.85; }
+  .container { max-width: 860px; margin: 0 auto; padding: 24px 16px 48px; }
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+    padding: 24px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+  }
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 36px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: .2s;
+  }
+  .drop-zone:hover, .drop-zone.dragover { border-color: var(--primary); background: #EEF2FF; }
+  .drop-zone .icon { font-size: 40px; margin-bottom: 8px; }
+  .drop-zone .label { font-weight: 600; }
+  .drop-zone .hint { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+  .drop-zone input { display: none; }
+  .drop-zone .file-name { margin-top: 10px; font-size: 13px; color: var(--primary); font-weight: 500; }
+
+  .config-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .config-group { flex: 1; min-width: 200px; }
+  .config-group label {
+    display: block; font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .04em;
+    color: var(--text-secondary); margin-bottom: 4px;
+  }
+  .config-group select, .config-group input {
+    width: 100%; padding: 8px 12px; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 14px; font-family: inherit;
+    background: white; color: var(--text);
+  }
+  .config-group select:focus, .config-group input:focus {
+    outline: none; border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79,70,229,.15);
+  }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 28px; border: none; border-radius: 8px;
+    font-size: 15px; font-weight: 600; font-family: inherit;
+    cursor: pointer; transition: .2s;
+  }
+  .btn-primary {
+    background: var(--primary); color: white;
+    width: 100%; justify-content: center; margin-top: 16px;
+  }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+
+  .log-box {
+    background: #0F172A; border-radius: 8px; padding: 16px;
+    height: 300px; overflow-y: auto;
+    font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
+    font-size: 12px; line-height: 1.6; color: #E2E8F0;
+    white-space: pre-wrap; word-break: break-all;
+  }
+  .log-box .dim { color: #64748B; }
+  .log-box .info { color: #93C5FD; }
+  .log-box .ok   { color: #34D399; }
+  .log-box .warn { color: #FBBF24; }
+  .log-box .err  { color: #F87171; }
+  .log-box::-webkit-scrollbar { width: 6px; }
+  .log-box::-webkit-scrollbar-track { background: transparent; }
+  .log-box::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+  .status-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 13px; font-weight: 500; }
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin .6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .result-section { display: none; }
+  .result-section.visible { display: block; }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .stat { background: var(--bg); border-radius: 8px; padding: 14px; text-align: center; }
+  .stat-value { font-size: 24px; font-weight: 800; color: var(--primary); }
+  .stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--text-secondary); margin-top: 2px; }
+
+  .tier-label {
+    display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 10px;
+    border-radius: 99px; text-transform: uppercase; letter-spacing: .03em;
+  }
+  .tier-top    { background: #FEF3C7; color: #92400E; }
+  .tier-good   { background: #D1FAE5; color: #065F46; }
+  .tier-explore{ background: #E0E7FF; color: #3730A3; }
+
+  .opp-card {
+    border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px;
+    margin-bottom: 10px; transition: .15s;
+  }
+  .opp-card:hover { border-color: var(--primary-light); box-shadow: 0 2px 8px rgba(79,70,229,.08); }
+  .opp-card .opp-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
+  .opp-card .opp-title { font-size: 14px; font-weight: 600; color: var(--primary); text-decoration: none; }
+  .opp-card .opp-title:hover { text-decoration: underline; }
+  .opp-card .opp-score { font-size: 13px; font-weight: 700; white-space: nowrap; }
+  .opp-card .opp-snippet { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-top: 4px; }
+  .opp-card .opp-meta { display: flex; gap: 10px; margin-top: 6px; font-size: 12px; color: var(--text-secondary); flex-wrap: wrap; }
+
+  .report-links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  .report-links a {
+    display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+    font-size: 13px; font-weight: 500; color: var(--text); text-decoration: none; transition: .15s;
+  }
+  .report-links a:hover { border-color: var(--primary-light); color: var(--primary); }
+
+  .hidden { display: none !important; }
+  .mt-4 { margin-top: 16px; }
+
+  .tier-section { margin-bottom: 20px; }
+  .tier-section h3 {
+    font-size: 14px; font-weight: 700; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 8px;
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <h1>EU Job Hunter</h1>
+  <p>Multi-Agent Pipeline — CV Analysis &amp; Job Search across Europe</p>
+</header>
+
+<div class="container">
+  <div class="card" id="upload-card">
+    <div class="card-title">Upload CV</div>
+    <div class="drop-zone" id="dropZone">
+      <div class="icon">📄</div>
+      <div class="label">Drop your CV here</div>
+      <div class="hint">PDF or DOCX supported</div>
+      <input type="file" id="cvInput" accept=".pdf,.docx,.doc">
+      <div class="file-name" id="fileName"></div>
+    </div>
+  </div>
+
+  <div class="card" id="config-card">
+    <div class="card-title">Configuration</div>
+    <div class="config-row">
+      <div class="config-group">
+        <label>Model</label>
+        <select id="modelSelect">
+          <option value="openai/gpt-4o-mini" selected>GPT-4o Mini</option>
+          <option value="openai/gpt-4o">GPT-4o</option>
+          <option value="anthropic/claude-3.5-haiku">Claude 3.5 Haiku</option>
+          <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet</option>
+          <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B (Free)</option>
+          <option value="google/gemma-3-27b-it">Gemma 3 27B</option>
+          <option value="mistralai/mistral-7b-instruct">Mistral 7B</option>
+        </select>
+      </div>
+      <div class="config-group">
+        <label>EU Locations</label>
+        <input id="locationsInput" value="France,Germany,Netherlands,Spain,Portugal,Poland,Czech Republic,Sweden,Switzerland,Belgium">
+      </div>
+    </div>
+    <button class="btn btn-primary" id="runBtn" disabled>Run Pipeline</button>
+  </div>
+
+  <div class="card hidden" id="progress-card">
+    <div class="card-title">Pipeline Progress</div>
+    <div class="status-bar" id="statusBar">
+      <span class="spinner" id="spinner"></span>
+      <span id="statusText">Running...</span>
+    </div>
+    <div class="log-box" id="logBox"></div>
+  </div>
+
+  <div class="card result-section" id="results-card">
+    <div class="card-title">Results</div>
+    <div id="resultsContent"></div>
+  </div>
+</div>
+
+<script>
+const dropZone = document.getElementById('dropZone');
+const cvInput = document.getElementById('cvInput');
+const fileName = document.getElementById('fileName');
+const runBtn = document.getElementById('runBtn');
+const modelSelect = document.getElementById('modelSelect');
+const locationsInput = document.getElementById('locationsInput');
+const progressCard = document.getElementById('progress-card');
+const logBox = document.getElementById('logBox');
+const statusText = document.getElementById('statusText');
+const spinner = document.getElementById('spinner');
+const resultsCard = document.getElementById('results-card');
+const resultsContent = document.getElementById('resultsContent');
+
+let selectedFile = null;
+
+dropZone.addEventListener('click', () => cvInput.click());
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+});
+cvInput.addEventListener('change', () => { if (cvInput.files[0]) handleFile(cvInput.files[0]); });
+
+function handleFile(file) {
+  const valid = ['.pdf', '.docx', '.doc'].some(ext => file.name.toLowerCase().endsWith(ext));
+  if (!valid) { alert('Please upload a PDF or DOCX file.'); return; }
+  selectedFile = file;
+  fileName.textContent = 'Selected: ' + file.name;
+  runBtn.disabled = false;
+}
+
+runBtn.addEventListener('click', async () => {
+  if (!selectedFile) return;
+  runBtn.disabled = true; runBtn.textContent = 'Starting...';
+  logBox.innerHTML = '';
+  resultsCard.classList.remove('visible');
+  resultsContent.innerHTML = '';
+  progressCard.classList.remove('hidden');
+
+  const form = new FormData();
+  form.append('cv', selectedFile);
+  form.append('model', modelSelect.value);
+  form.append('locations', locationsInput.value);
+
+  try {
+    const resp = await fetch('/run', { method: 'POST', body: form });
+    const data = await resp.json();
+    runBtn.textContent = 'Running...';
+    statusText.textContent = 'Pipeline running...';
+    connectSSE(data.task_id);
+  } catch (err) {
+    appendLog('Connection failed: ' + err.message, 'err');
+    resetUI();
+  }
+});
+
+function connectSSE(taskId) {
+  const evtSource = new EventSource('/stream/' + taskId);
+  evtSource.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    if (data.type === 'log') {
+      appendLog(data.message);
+    } else if (data.type === 'done') {
+      evtSource.close();
+      statusText.textContent = 'Pipeline complete!';
+      spinner.style.display = 'none';
+      runBtn.textContent = 'Run Pipeline'; runBtn.disabled = false;
+      if (data.result && data.result.output) renderResults(data.result.output);
+    } else if (data.type === 'error') {
+      evtSource.close();
+      statusText.textContent = 'Error';
+      spinner.style.display = 'none';
+      appendLog('ERROR: ' + data.message, 'err');
+      runBtn.textContent = 'Run Pipeline'; runBtn.disabled = false;
+    }
+  };
+  evtSource.onerror = () => {
+    evtSource.close();
+    statusText.textContent = 'Connection lost';
+    spinner.style.display = 'none';
+    runBtn.textContent = 'Run Pipeline'; runBtn.disabled = false;
+  };
+}
+
+function appendLog(msg, cls) {
+  const el = document.createElement('div');
+  el.className = cls || '';
+  el.textContent = msg;
+  logBox.appendChild(el);
+  logBox.scrollTop = logBox.scrollHeight;
+}
+
+function resetUI() {
+  runBtn.textContent = 'Run Pipeline'; runBtn.disabled = false;
+  spinner.style.display = 'none';
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div'); d.textContent = s; return d.innerHTML;
+}
+
+async function renderResults(output) {
+  resultsCard.classList.add('visible');
+
+  // Parse stats from output
+  const totalMatch = output.match(/(\d+)\s+opportunities?\s+(?:scored|ranked|found)/i);
+  const foundMatch = output.match(/(\d+)\s+found/i);
+  const queriesMatch = output.match(/(\d+)\s+quer(?:ies|y)/i);
+  const total = totalMatch ? totalMatch[1] : (foundMatch ? foundMatch[1] : '—');
+  const queries = queriesMatch ? queriesMatch[1] : '—';
+
+  let html = `<div class="stats">
+    <div class="stat"><div class="stat-value">${total}</div><div class="stat-label">Opportunities</div></div>
+    <div class="stat"><div class="stat-value">${queries}</div><div class="stat-label">Queries Executed</div></div>
+    <div class="stat"><div class="stat-value">🧠</div><div class="stat-label">AI-Ranked</div></div>
+  </div>`;
+
+  // Extract JSON report path to load structured data
+  const jsonMatch = output.match(/JSON\s*:\s*(.+?\.json)/) || output.match(/(Ali_out[\\/][^\s]+\.json)/);
+  const mdMatch = output.match(/Markdown\s*:\s*(.+?\.md)/) || output.match(/(Ali_out[\\/][^\s]+\.md)/);
+
+  // Try to load and render the JSON report
+  if (jsonMatch) {
+    const jsonPath = jsonMatch[1].trim();
+    const jsonUrl = '/reports/' + jsonPath.replace(/.*[\\/]/, '');
+    try {
+      const resp = await fetch(jsonUrl);
+      if (resp.ok) {
+        const report = await resp.json();
+        const opps = report.ranked_opportunities || [];
+        if (opps.length > 0) {
+          const tiers = [
+            { key: 'TOP PICKS', emoji: '🔥', cls: 'tier-top' },
+            { key: 'GOOD FITS', emoji: '✅', cls: 'tier-good' },
+            { key: 'WORTH EXPLORING', emoji: '📌', cls: 'tier-explore' },
+          ];
+          for (const tier of tiers) {
+            const items = opps.filter(o => o.tier === tier.key);
+            if (!items.length) continue;
+            const limit = tier.key === 'TOP PICKS' ? items.length : Math.min(items.length, 8);
+            html += `<div class="tier-section"><h3>${tier.emoji} ${tier.key} (${items.length})</h3>`;
+            for (const item of items.slice(0, limit)) {
+              const link = item.apply_url || item.source_url || item.link || '#';
+              const company = item.company ? ` — ${escapeHtml(item.company)}` : '';
+              const dateStr = item.date ? `Posted: ${item.date}` : '';
+              const reasons = item.match_reasons && item.match_reasons.length
+                ? `<div style="font-size:12px;color:var(--text-secondary);margin-top:4px;line-height:1.5">`
+                  + item.match_reasons.map(r => `• ${escapeHtml(r)}`).join('<br>')
+                  + `</div>`
+                : (item.fit_reason ? `<div style="font-size:12px;color:var(--text-secondary);margin-top:4px">${escapeHtml(item.fit_reason)}</div>` : '');
+              html += `<div class="opp-card">
+                <div class="opp-header">
+                  <a href="${escapeHtml(link)}" class="opp-title" target="_blank" rel="noopener">${escapeHtml(item.title || 'Untitled')}${company}</a>
+                  <span class="opp-score">${item.score}/10</span>
+                </div>
+                <div class="opp-snippet">${escapeHtml(item.snippet || '')}</div>
+                ${reasons}
+                <div class="opp-meta">
+                  <span class="tier-label ${tier.cls}">${tier.key}</span>
+                  ${dateStr ? `<span>${dateStr}</span>` : ''}
+                  ${item.platform ? `<span>${escapeHtml(item.platform)}</span>` : ''}
+                </div>
+              </div>`;
+            }
+            if (items.length > limit) {
+              html += `<div style="font-size:13px;color:var(--text-secondary);padding:4px 0">+ ${items.length - limit} more in this tier</div>`;
+            }
+            html += `</div>`;
+          }
+        }
+      }
+    } catch (e) {
+      // JSON fetch failed — fall through to text-based display
+    }
+  }
+
+  // Report download links
+  const hasLink = jsonMatch || mdMatch;
+  if (hasLink) {
+    html += '<div class="card-title mt-4">Download Reports</div><div class="report-links">';
+    const toUrl = (p) => '/reports/' + p.replace(/.*[\\/]/, '');
+    if (mdMatch) html += `<a href="${toUrl(mdMatch[1])}" target="_blank">📄 Markdown Report</a>`;
+    if (jsonMatch) html += `<a href="${toUrl(jsonMatch[1])}" target="_blank">📦 JSON Data</a>`;
+    html += '</div>';
+  }
+
+  resultsContent.innerHTML = html;
+  resultsCard.scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+</body>
+</html>

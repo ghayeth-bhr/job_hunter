@@ -1,0 +1,15 @@
+[project]
+name = "eu-job-hunter"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "openai",
+    "openai-agents",
+    "PyPDF2",
+    "python-docx",
+    "requests",
+    "fastapi",
+    "uvicorn[standard]",
+    "python-multipart",
+    "crawl4ai>=0.9.0,<1.0",
+]
