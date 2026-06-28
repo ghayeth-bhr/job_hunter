@@ -23,6 +23,9 @@ uploads/
 *.swp
 *.swo
 
+# Docker
+.ms-playwright/
+
 # OS
 .DS_Store
 Thumbs.db

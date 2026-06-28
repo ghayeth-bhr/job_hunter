@@ -1,0 +1,15 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+.ruff_cache/
+.git/
+.gitignore
+.env
+Ali_out/
+output/
+uploads/
+*.pdf
+README.md
+.idea/
+.vscode/

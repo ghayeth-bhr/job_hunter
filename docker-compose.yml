@@ -1,0 +1,37 @@
+services:
+
+  backend:
+    build: .
+    container_name: eu-job-hunter-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - OUTPUT_DIR=/app/reports
+      - CRAWL4AI_CACHE_DIR=/app/crawl4ai_cache
+    volumes:
+      - reports_data:/app/reports
+      - uploads_data:/app/uploads
+      - crawl4ai_cache:/app/crawl4ai_cache
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build: ./frontend
+    container_name: eu-job-hunter-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  reports_data:
+  uploads_data:
+  crawl4ai_cache:
