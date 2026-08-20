@@ -12,6 +12,10 @@ __pycache__/
 # Output directories
 Ali_out/
 output/
+reports/
+
+# Cross-run job-tracking database (local state, not source)
+data/
 
 # User data
 uploads/

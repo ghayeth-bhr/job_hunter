@@ -54,7 +54,7 @@ async def discover_jobs_direct(
     cv_keywords: list[str],
     target_roles: list[str],
     max_per_board: int = 20,
-    min_relevance_score: float = 0.3,
+    min_relevance_score: float = 0.15,
 ) -> list[dict]:
     """
     Crawls EU job boards directly and returns relevant job listings.

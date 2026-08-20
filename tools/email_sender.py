@@ -102,25 +102,38 @@ def _build_html_report(report_path: Path) -> Optional[str]:
     return html
 
 
-def send_report_email(subject: str, report_path: str) -> dict:
+def send_report_email(
+    subject: str,
+    report_path: str,
+    from_email: str | None = None,
+    to_email: str | None = None,
+) -> dict:
     """Send a formatted HTML report via SendGrid.
 
     Args:
         subject: Email subject line
         report_path: Path to the JSON report file on disk
+        from_email: Override SENDGRID_FROM_EMAIL env var
+        to_email: Override SENDGRID_TO_EMAIL env var
 
     Returns:
         dict with status and message
     """
     html_body = _build_html_report(Path(report_path))
     if not html_body:
+        print(
+            "  [WARN] Could not build HTML from report — file missing, invalid JSON, or no opportunities"
+        )
         return {"status": "error", "message": "Could not build HTML from report"}
 
     api_key = os.environ.get("SENDGRID_API_KEY")
-    from_email = os.environ.get("SENDGRID_FROM_EMAIL")
-    to_email = os.environ.get("SENDGRID_TO_EMAIL")
+    from_email = from_email or os.environ.get("SENDGRID_FROM_EMAIL")
+    to_email = to_email or os.environ.get("SENDGRID_TO_EMAIL")
 
     if not all([api_key, from_email, to_email]):
+        print(
+            "  [WARN] Missing SendGrid env vars: SENDGRID_API_KEY, SENDGRID_FROM_EMAIL, SENDGRID_TO_EMAIL"
+        )
         return {
             "status": "error",
             "message": "SENDGRID_API_KEY, SENDGRID_FROM_EMAIL, SENDGRID_TO_EMAIL must be set",
@@ -138,10 +151,10 @@ def send_report_email(subject: str, report_path: str) -> dict:
             html_content=Content("text/html", html_body),
         )
         response = sg.client.mail.send.post(request_body=mail.get())
-        print(f"  📧 Email sent! Status: {response.status_code}")
+        print(f"  [OK] Email sent! Status: {response.status_code}")
         return {"status": "success", "status_code": response.status_code}
     except Exception as e:
-        print(f"  ⚠️  Email failed: {e}")
+        print(f"  [WARN] Email failed: {e}")
         return {"status": "error", "message": str(e)}
 
 

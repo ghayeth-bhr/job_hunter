@@ -159,6 +159,23 @@
   .report-links a:hover { border-color: var(--primary-light); color: var(--primary); }
 
   .hidden { display: none !important; }
+  .toggle-checkbox { display: none; }
+  .toggle-label {
+    display: flex; align-items: center; gap: 10px; margin-top: 14px;
+    font-size: 13px; font-weight: 500; cursor: pointer; user-select: none;
+  }
+  .toggle-label::before {
+    content: ''; width: 16px; height: 16px; flex-shrink: 0;
+    border: 2px solid var(--border); border-radius: 4px;
+    display: inline-block; transition: .15s;
+  }
+  .toggle-checkbox:checked + .toggle-label::before {
+    background: var(--primary); border-color: var(--primary);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='white' d='M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0z'/%3E%3C/svg%3E");
+    background-size: 12px; background-position: center; background-repeat: no-repeat;
+  }
+  .email-fields { display: none; margin-top: 10px; flex-direction: column; gap: 8px; }
+  .toggle-checkbox:checked ~ .email-fields { display: flex !important; }
   .mt-4 { margin-top: 16px; }
 
   .tier-section { margin-bottom: 20px; }
@@ -211,6 +228,13 @@
         <input id="locationsInput" value="France,Germany,Netherlands,Spain,Portugal,Poland,Czech Republic,Sweden,Switzerland,Belgium">
       </div>
     </div>
+    <input type="checkbox" id="emailToggle" class="toggle-checkbox">
+    <label for="emailToggle" class="toggle-label">Send report via email</label>
+    <div id="emailFields" class="email-fields">
+      <input id="fromEmail" type="email" placeholder="Sender email (from)" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
+      <input id="toEmail" type="email" placeholder="Recipient email (to)" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
+      <input id="emailSubject" type="text" placeholder="Email subject (e.g. EU Job Report — Your Name)" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
+    </div>
     <button class="btn btn-primary" id="runBtn" disabled>Run Pipeline</button>
   </div>
 
@@ -235,8 +259,8 @@ const cvInput = document.getElementById('cvInput');
 const fileName = document.getElementById('fileName');
 const runBtn = document.getElementById('runBtn');
 const modelSelect = document.getElementById('modelSelect');
-const locationsInput = document.getElementById('locationsInput');
-const progressCard = document.getElementById('progress-card');
+  const locationsInput = document.getElementById('locationsInput');
+  const progressCard = document.getElementById('progress-card');
 const logBox = document.getElementById('logBox');
 const statusText = document.getElementById('statusText');
 const spinner = document.getElementById('spinner');
@@ -275,6 +299,10 @@ runBtn.addEventListener('click', async () => {
   form.append('cv', selectedFile);
   form.append('model', modelSelect.value);
   form.append('locations', locationsInput.value);
+  form.append('enable_email', document.getElementById('emailToggle').checked ? 'true' : 'false');
+  form.append('from_email', document.getElementById('fromEmail').value);
+  form.append('to_email', document.getElementById('toEmail').value);
+  form.append('email_subject', document.getElementById('emailSubject').value);
 
   try {
     const resp = await fetch('/run', { method: 'POST', body: form });
@@ -371,9 +399,8 @@ async function renderResults(output) {
           for (const tier of tiers) {
             const items = opps.filter(o => o.tier === tier.key);
             if (!items.length) continue;
-            const limit = tier.key === 'TOP PICKS' ? items.length : Math.min(items.length, 8);
             html += `<div class="tier-section"><h3>${tier.emoji} ${tier.key} (${items.length})</h3>`;
-            for (const item of items.slice(0, limit)) {
+            for (const item of items) {
               const link = item.apply_url || item.source_url || item.link || '#';
               const company = item.company ? ` — ${escapeHtml(item.company)}` : '';
               const dateStr = item.date ? `Posted: ${item.date}` : '';
@@ -396,8 +423,24 @@ async function renderResults(output) {
                 </div>
               </div>`;
             }
-            if (items.length > limit) {
-              html += `<div style="font-size:13px;color:var(--text-secondary);padding:4px 0">+ ${items.length - limit} more in this tier</div>`;
+            html += `</div>`;
+          }
+
+          // Skipped opportunities section
+          const skippedOpps = report.skipped_opportunities || [];
+          if (skippedOpps.length > 0) {
+            html += `<div class="tier-section"><h3>⏭️ Skipped (Score 1-2) (${skippedOpps.length})</h3>`;
+            for (const s of skippedOpps) {
+              html += `<div class="opp-card">
+                <div class="opp-header">
+                  <span class="opp-title">${escapeHtml(s.title || 'Untitled')}</span>
+                  <span class="opp-score">${s.score || '?'}/10</span>
+                </div>
+                <div class="opp-meta">
+                  <span class="tier-label tier-skip">SKIP</span>
+                  ${s.reason && s.reason.length ? `<span>${escapeHtml(s.reason.join('; '))}</span>` : ''}
+                </div>
+              </div>`;
             }
             html += `</div>`;
           }

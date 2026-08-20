@@ -66,6 +66,13 @@ The app uses the **OpenAI Agents SDK** with **3 specialized agents** running on 
   - `opportunities_<timestamp>.md` — Formatted Markdown report
   - `opportunities_<timestamp>.json` — Structured JSON data
 
+### Step 4 (Optional) — Email Report
+
+- Sends the structured JSON report as a styled HTML email via **SendGrid**
+- Can be enabled from the frontend checkbox or via `ENABLE_EMAIL=true`
+- Customizable sender, recipient, and subject line (avoids spam classification)
+- HTML template includes tiered cards (TOP PICKS / GOOD FITS / WORTH EXPLORING) with scores, match reasons, and apply links
+
 ### LLM Backend
 
 ```
@@ -89,17 +96,32 @@ The Agents SDK connects to **OpenRouter** (an OpenAI-compatible API) instead of 
 | CV Parsing | PyPDF2, python-docx |
 | Concurrency | ThreadPoolExecutor (10 parallel searches) |
 | Streaming | Server-Sent Events (SSE) for live logs |
+| Email Delivery | [SendGrid](https://sendgrid.com) (transactional email API) |
 
 ## Project Structure
 
 ```
 ├── main.py              # Core multi-agent pipeline (CLI)
 ├── app.py               # FastAPI web server
+├── tools/
+│   ├── crawl4ai_scraper.py   # Full JD scraping with Crawl4AI
+│   ├── company_enricher.py   # Company website enrichment
+│   ├── direct_board_crawler.py # Direct EU board discovery
+│   └── email_sender.py       # SendGrid email report delivery
+├── prompts/
+│   └── scoring_agent.py      # Weighted scoring prompt
+├── frontend/
+│   ├── index.html       # Standalone SPA frontend
+│   ├── nginx.conf       # Nginx reverse-proxy config
+│   └── Dockerfile       # Nginx container build
 ├── templates/
-│   └── index.html       # Single-page frontend
+│   └── index.html       # FastAPI-served frontend
+├── docker-compose.yml   # Backend + frontend orchestration
+├── Dockerfile           # Backend container build
 ├── uploads/             # Uploaded CVs (auto-created)
-├── Ali_out/             # Generated reports (configurable)
+├── reports/             # Generated reports (configurable via OUTPUT_DIR)
 ├── .env                 # API keys + configuration
+├── .env.example         # Environment variable template
 └── pyproject.toml       # Python dependencies (uv)
 ```
 
@@ -113,26 +135,35 @@ FastAPI saves file → returns task_id
         │
         ▼
 Background task starts pipeline:
-  ┌────────────────────────────────────────────┐
-  │  1. Orchestrator Agent receives task       │
-  │     │                                      │
-  │     ▼                                      │
-  │  2. CV Researcher Agent                    │
-  │     → calls analyze_cv_and_extract_terms() │
-  │     → LLM extracts skills, roles, queries  │
-  │     │                                      │
-  │     ▼                                      │
-  │  3. Web Search Agent                       │
-  │     → calls search_eu_job_opportunities()  │
-  │     → 62 concurrent Serper API calls       │
-  │     → dedup, pre-score results             │
-  │     │                                      │
-  │     ▼                                      │
-  │  4. Report Writer Tool                     │
-  │     → calls write_opportunities_report()   │
-  │     → LLM ranks & tiers opportunities      │
-  │     → writes .md + .json files             │
-  └────────────────────────────────────────────┘
+  ┌──────────────────────────────────────────────────┐
+  │  1. Orchestrator Agent receives task             │
+  │     │                                            │
+  │     ▼                                            │
+  │  2. CV Researcher Agent                          │
+  │     → calls analyze_cv_and_extract_terms()       │
+  │     → LLM extracts skills, roles, queries        │
+  │     │                                            │
+  │     ▼                                            │
+  │  3. Web Search Agent                             │
+  │     → calls search_eu_job_opportunities()        │
+  │     → 62 concurrent Serper API calls             │
+  │     → Crawl4AI scrapes full job descriptions     │
+  │     → Company enrichment via website crawl       │
+  │     → Direct EU board discovery (optional)       │
+  │     → dedup, pre-score results                   │
+  │     │                                            │
+  │     ▼                                            │
+  │  4. Report Writer Tool                           │
+  │     → calls write_opportunities_report()         │
+  │     → LLM ranks & tiers opportunities            │
+  │     → writes .md + .json files                   │
+  │     │                                            │
+  │     ▼                                            │
+  │  5. Email Report (optional)                      │
+  │     → Builds styled HTML from JSON report        │
+  │     → Sends via SendGrid API                     │
+  │     → Custom FROM/TO/subject fields              │
+  └──────────────────────────────────────────────────┘
         │
         ▼
 SSE streams logs → Frontend displays results
@@ -178,7 +209,60 @@ uv run python app.py
 | `SERPER_API_KEY` | ✅ | — | Serper.dev API key |
 | `MODEL` | ❌ | `openai/gpt-4o-mini` | Any OpenRouter model slug |
 | `EU_LOCATIONS` | ❌ | 10 EU countries | Comma-separated target countries |
-| `OUTPUT_DIR` | ❌ | `./Ali_out` | Report output directory |
+| `OUTPUT_DIR` | ❌ | `./reports` | Report output directory |
+| `CRAWL4AI_MAX_CONCURRENT` | ❌ | `10` | Parallel browser tabs for crawling |
+| `COMPANY_ENRICH_MAX` | ❌ | `20` | Max companies to enrich per run |
+| `ENABLE_DIRECT_CRAWL` | ❌ | `true` | Set `false` to skip direct board crawling |
+| `DIRECT_CRAWL_MAX_PER_BOARD` | ❌ | `15` | Pages per direct board crawl |
+| `SENDGRID_API_KEY` | ❌* | — | SendGrid API key (for email reports) |
+| `SENDGRID_FROM_EMAIL` | ❌* | — | Default sender email address |
+| `SENDGRID_TO_EMAIL` | ❌* | — | Default recipient email address |
+| `ENABLE_EMAIL` | ❌ | `false` | Set `true` to send email after each run |
+
+\* Required only if `ENABLE_EMAIL=true` or when using the email checkbox in the frontend.
+
+## Email Reports
+
+The pipeline can optionally email the ranked results as a styled HTML report via **SendGrid**.
+
+### How to enable
+
+**Via frontend:** Check "Send report via email", fill in the FROM/TO/Subject fields, and run the pipeline.
+
+**Via CLI/env:** Set these in `.env`:
+```env
+ENABLE_EMAIL=true
+SENDGRID_API_KEY=SG.your_api_key_here
+SENDGRID_FROM_EMAIL=you@example.com
+SENDGRID_TO_EMAIL=you@example.com
+```
+
+### What the email looks like
+
+- Header with candidate name, opportunity count, and query stats
+- Tiered result cards: **🔥 TOP PICKS**, **✅ GOOD FITS**, **📌 WORTH EXPLORING**
+- Each card shows: title, company, score, snippet, match reasons, and concerns
+- Apply links direct you to the job posting
+- Clean, mobile-friendly HTML with inline styles
+
+### Spam prevention
+
+The subject line is customizable from the frontend. Using a personalized subject (e.g., *"EU Job Report — John Doe — June 2026"*) improves deliverability. The default fallback is *"EU Job Hunter Report — YYYY-MM-DD"*.
+
+### Programmatic usage
+
+```python
+from tools.email_sender import send_report_email
+
+result = send_report_email(
+    subject="EU Job Report — Custom Subject",
+    report_path="reports/opportunities_20260628_120000.json",
+    from_email="sender@example.com",
+    to_email="recipient@example.com",
+)
+# Returns {"status": "success", "status_code": 202}
+# Or {"status": "error", "message": "..."}
+```
 
 ## Why OpenRouter?
 

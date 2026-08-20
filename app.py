@@ -38,6 +38,9 @@ async def run_endpoint(
     model: str = Form("openai/gpt-4o-mini"),
     locations: str = Form(""),
     enable_email: str = Form("false"),
+    from_email: str = Form(""),
+    to_email: str = Form(""),
+    email_subject: str = Form(""),
 ):
     task_id = uuid.uuid4().hex[:12]
     save_path = UPLOAD_DIR / f"{task_id}_{cv.filename}"
@@ -45,6 +48,10 @@ async def run_endpoint(
         f.write(await cv.read())
 
     os.environ["ENABLE_EMAIL"] = enable_email
+    if from_email:
+        os.environ["SENDGRID_FROM_EMAIL"] = from_email
+    if to_email:
+        os.environ["SENDGRID_TO_EMAIL"] = to_email
 
     pipeline.reconfigure(
         model=model,
@@ -55,7 +62,15 @@ async def run_endpoint(
     result_holder: dict = {"result": None}
 
     asyncio.create_task(
-        _run_pipeline(task_id, str(save_path), log_queue, result_holder)
+        _run_pipeline(
+            task_id,
+            str(save_path),
+            log_queue,
+            result_holder,
+            from_email=from_email or None,
+            to_email=to_email or None,
+            email_subject=email_subject or None,
+        )
     )
 
     tasks[task_id] = {
@@ -95,6 +110,9 @@ async def _run_pipeline(
     cv_path: str,
     queue: asyncio.Queue,
     result_holder: dict,
+    from_email: str | None = None,
+    to_email: str | None = None,
+    email_subject: str | None = None,
 ):
     try:
 
@@ -114,7 +132,12 @@ async def _run_pipeline(
         writer = QueueWriter()
 
         with redirect_stdout(writer):
-            await pipeline.run_pipeline(cv_path)
+            await pipeline.run_pipeline(
+                cv_path,
+                from_email=from_email,
+                to_email=to_email,
+                email_subject=email_subject,
+            )
 
         output = writer.getvalue()
         result_holder["result"] = {"output": output}
@@ -139,9 +162,9 @@ async def _run_pipeline(
             asyncio.create_task(_cleanup())
 
 
-OUTPUT_DIR = Path(os.getenv("OUTPUT_DIR", "./Ali_out"))
-if OUTPUT_DIR.exists():
-    app.mount("/reports", StaticFiles(directory=str(OUTPUT_DIR)), name="reports")
+OUTPUT_DIR = Path(os.getenv("OUTPUT_DIR", "./reports"))
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/reports", StaticFiles(directory=str(OUTPUT_DIR)), name="reports")
 
 
 if __name__ == "__main__":

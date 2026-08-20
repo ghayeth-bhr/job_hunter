@@ -273,6 +273,23 @@
   }
 
   .hidden { display: none !important; }
+  .toggle-checkbox { display: none; }
+  .toggle-label {
+    display: flex; align-items: center; gap: 10px; margin-top: 14px;
+    font-size: 13px; font-weight: 500; cursor: pointer; user-select: none;
+  }
+  .toggle-label::before {
+    content: ''; width: 16px; height: 16px; flex-shrink: 0;
+    border: 2px solid var(--border); border-radius: 4px;
+    display: inline-block; transition: .15s;
+  }
+  .toggle-checkbox:checked + .toggle-label::before {
+    background: var(--primary); border-color: var(--primary);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='white' d='M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0z'/%3E%3C/svg%3E");
+    background-size: 12px; background-position: center; background-repeat: no-repeat;
+  }
+  .email-fields { display: none; margin-top: 10px; flex-direction: column; gap: 8px; }
+  .toggle-checkbox:checked ~ .email-fields { display: flex !important; }
   .mt-4 { margin-top: 20px; }
   .mb-2 { margin-bottom: 8px; }
   .fade-in { animation: fadeIn .4s ease; }
@@ -356,10 +373,13 @@
         <input id="locationsInput" value="France,Germany,Netherlands,Spain,Portugal,Poland,Czech Republic,Sweden,Switzerland,Belgium">
       </div>
     </div>
-    <label style="display:flex;align-items:center;gap:8px;margin-top:14px;font-size:13px;font-weight:500;cursor:pointer">
-      <input type="checkbox" id="emailToggle" style="width:16px;height:16px;accent-color:var(--primary)">
-      Send report via email <span style="color:var(--text-tertiary);font-size:11px">(requires SENDGRID config)</span>
-    </label>
+    <input type="checkbox" id="emailToggle" class="toggle-checkbox">
+    <label for="emailToggle" class="toggle-label">Send report via email</label>
+    <div id="emailFields" class="email-fields">
+      <input id="fromEmail" type="email" placeholder="Sender email (from)" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text)">
+      <input id="toEmail" type="email" placeholder="Recipient email (to)" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text)">
+      <input id="emailSubject" type="text" placeholder="Email subject (e.g. EU Job Report — Your Name)" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text)">
+    </div>
     <button class="btn btn-primary" id="runBtn" disabled>
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
       Run Pipeline
@@ -471,6 +491,9 @@ runBtn.addEventListener('click', async () => {
   form.append('model', modelSelect.value);
   form.append('locations', locationsInput.value);
   form.append('enable_email', document.getElementById('emailToggle').checked ? 'true' : 'false');
+  form.append('from_email', document.getElementById('fromEmail').value);
+  form.append('to_email', document.getElementById('toEmail').value);
+  form.append('email_subject', document.getElementById('emailSubject').value);
 
   try {
     const resp = await fetch(`${API_PREFIX}/run`, { method: 'POST', body: form });
@@ -637,12 +660,12 @@ async function renderResults(output) {
 
       // Skipped opportunities section
       const skippedOpps = jsonReport.skipped_opportunities || opps.filter(o => (o.tier || '').toUpperCase() === 'SKIP');
-      if (skippedOpps.length > 0 && skipped !== '0') {
+      if (skippedOpps.length > 0) {
         html += `<div class="tier-section mt-4">
           <div class="tier-header" style="border-bottom-color:#FECACA">⏭️ Skipped (Score 1-2) <span class="count">${skippedOpps.length}</span></div>
-          <details style="font-size:13px;color:var(--text-secondary)">
+          <details open style="font-size:13px;color:var(--text-secondary)">
             <summary style="cursor:pointer;font-weight:500">Show skipped opportunities</summary>
-            ${skippedOpps.slice(0, 10).map(s => `<div style="padding:6px 0;border-bottom:1px solid var(--border)">${escapeHtml(s.title || s.source_url || '')} — Score: ${s.score || '?'}</div>`).join('')}
+            ${skippedOpps.map(s => `<div style="padding:6px 0;border-bottom:1px solid var(--border)">${escapeHtml(s.title || s.source_url || '')} — Score: ${s.score || '?'}</div>`).join('')}
           </details>
         </div>`;
       }
@@ -653,7 +676,7 @@ async function renderResults(output) {
     html += `<div class="empty-state"><span class="emoji">📄</span><p>Run the pipeline to see ranked opportunities</p></div>`;
   }
 
-  if (mdMatch) {
+  if (jsonMatch || mdMatch) {
     html += `<div class="mt-4"><div class="card-title" style="margin-bottom:8px">Download Reports</div>
     <div class="report-links">`;
     const toUrl = (p) => `${API_PREFIX}/reports/` + p.replace(/.*[/\\]/, '');
