@@ -2,273 +2,122 @@
 
 # EU Job Hunter 🎯
 
-**Multi-Agent AI Pipeline — CV Analysis & European Job Search**
-
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB) ![OpenAI Agents SDK](https://img.shields.io/badge/OpenAI_Agents_SDK-0.17-412991) ![OpenRouter](https://img.shields.io/badge/OpenRouter-API-FF6B35) ![FastAPI](https://img.shields.io/badge/FastAPI-Web-009688)
+**Finds internship / stage-PFE opportunities across Europe and Canada that match your CV, on demand, via Telegram.**
 
 </div>
 
 ---
 
-## Architecture
+## What it does
+
+You send `/search` to a Telegram bot. It:
+
+1. Reads your CV once (cached — no need to re-analyze it every time).
+2. Searches for **internship / stage-PFE postings only** (not full-time jobs) across free job APIs, Google search, and direct job-board crawling.
+3. Filters out anything already reported in a previous run.
+4. Ranks what's left with an LLM (free-tier model) into tiers: **TOP PICKS / GOOD FITS / WORTH EXPLORING**.
+5. Sends you back a summary + the full report (Markdown + JSON) on Telegram.
+
+Runs for $0/month by default — no scheduled cron, no server to keep alive, just message the bot when you want a fresh search.
+
+## How it works
 
 ```
-                    ┌─────────────────────────────┐
-                    │     Orchestrator Agent      │
-                    │  (coordinates all 3 steps)  │
-                    └──────────┬──────────────────┘
-                               │
-            ┌──────────────────┼──────────────────┐
-            ▼                  ▼                   ▼
-   ┌────────────────┐ ┌────────────────┐ ┌──────────────────┐
-   │ CV Researcher  │ │ Web Search    │ │ Report Writer    │
-   │ Agent          │ │ Agent         │ │ Tool             │
-   │ (Step 1)       │ │ (Step 2)      │ │ (Step 3)         │
-   └───────┬────────┘ └───────┬────────┘ └──────────────────┘
-           │                  │
-           ▼                  ▼
-   ┌────────────────┐ ┌────────────────┐
-   │  PyPDF2 /      │ │  Serper.dev    │
-   │  python-docx   │ │  Google Search │
-   │  + LLM parse   │ │  API           │
-   └────────────────┘ └────────────────┘
+Telegram /search
+      │
+      ▼
+1. CV analysis (cached JSON — skipped after the first run)
+      │
+      ▼
+2. Search for opportunities, in parallel:
+     • Free job APIs   — Arbeitnow, Adzuna, Remotive, RemoteOK, Jobicy, Bundesagentur
+     • Google search    — Serper.dev, internship/stage-scoped queries
+     • Full-text scrape — Crawl4AI on the resulting URLs
+     • Direct crawling  — a handful of EU job boards
+     • (optional, paid) — Apify actors for LinkedIn / Welcome to the Jungle / Indeed
+      │
+      ▼
+3. Deduplicate + drop anything already seen in a past run (SQLite)
+      │
+      ▼
+4. Drop anything that isn't shaped like an internship
+   (deterministic filter — catches what a query might have missed)
+      │
+      ▼
+5. LLM ranks what's left, in small batches, twice per batch
+   (disagreements are shown as DISPUTED, never silently averaged)
+      │
+      ▼
+6. Report written (.md + .json) and sent back over Telegram
 ```
 
-## How It Works
+Along the way, the pipeline is deliberately loud about anything it *can't* do — an expired API key, an exhausted free quota, a ranking batch that failed — rather than silently producing a thinner report. Those show up in the report as clearly labeled banners, not missing rows.
 
-The app uses the **OpenAI Agents SDK** with **3 specialized agents** running on **OpenRouter** (any LLM model). The entire pipeline is a single `Runner.run()` call to the orchestrator.
+## Setup
 
-### Step 1 — CV Researcher Agent
-
-- Reads your CV (PDF or DOCX) using `PyPDF2` or `python-docx`
-- Sends raw text to the LLM which extracts structured data:
-  - Job titles, technical skills, soft skills
-  - Tools & frameworks, domains, certifications
-  - Languages, education, notable achievements
-  - **15+ suggested search queries** tailored to your profile
-- Returns a clean JSON object with all extracted terms
-
-### Step 2 — Web Search Agent
-
-- Takes the JSON from Step 1 and generates **62+ targeted Google search queries**
-- Queries target **2026 postings only** across EU countries
-- Searches 5 platforms: LinkedIn, Indeed, Glassdoor, Welcome to the Jungle, jobs.eu
-- **10 concurrent** Serper.dev API calls (ThreadPoolExecutor) for speed
-- Uses `tbs=qdr:m3` (past 3 months) freshness filter
-- Deduplicates results, pre-scores by keyword match + date boost
-
-### Step 3 — Report Writer Tool
-
-- LLM ranks all opportunities (score 1-10) based on profile fit
-- Assigns tiers: **TOP PICKS** (8-10), **GOOD FITS** (5-7), **WORTH EXPLORING** (1-4)
-- Heavily penalizes old/irrelevant postings
-- Writes two files to the output directory:
-  - `opportunities_<timestamp>.md` — Formatted Markdown report
-  - `opportunities_<timestamp>.json` — Structured JSON data
-
-### Step 4 (Optional) — Email Report
-
-- Sends the structured JSON report as a styled HTML email via **SendGrid**
-- Can be enabled from the frontend checkbox or via `ENABLE_EMAIL=true`
-- Customizable sender, recipient, and subject line (avoids spam classification)
-- HTML template includes tiered cards (TOP PICKS / GOOD FITS / WORTH EXPLORING) with scores, match reasons, and apply links
-
-### LLM Backend
-
-```
-┌──────────────┐     ┌──────────────┐     ┌──────────────────┐
-│  Your Code   │ ──▶ │  OpenRouter  │ ──▶ │  Any LLM Model   │
-│  (Agents SDK)│     │  API Gateway │     │  (GPT-4o, Claude,│
-│              │     │              │     │   Llama, etc.)   │
-└──────────────┘     └──────────────┘     └──────────────────┘
-```
-
-The Agents SDK connects to **OpenRouter** (an OpenAI-compatible API) instead of OpenAI directly. This lets you swap between 200+ models by changing one env variable — no code changes needed.
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| AI Framework | [OpenAI Agents SDK](https://github.com/openai/openai-agents-python) |
-| LLM Backend | [OpenRouter](https://openrouter.ai) (multi-model gateway) |
-| Search API | [Serper.dev](https://serper.dev) (Google Search API) |
-| Web Framework | [FastAPI](https://fastapi.tiangolo.com) |
-| CV Parsing | PyPDF2, python-docx |
-| Concurrency | ThreadPoolExecutor (10 parallel searches) |
-| Streaming | Server-Sent Events (SSE) for live logs |
-| Email Delivery | [SendGrid](https://sendgrid.com) (transactional email API) |
-
-## Project Structure
-
-```
-├── main.py              # Core multi-agent pipeline (CLI)
-├── app.py               # FastAPI web server
-├── tools/
-│   ├── crawl4ai_scraper.py   # Full JD scraping with Crawl4AI
-│   ├── company_enricher.py   # Company website enrichment
-│   ├── direct_board_crawler.py # Direct EU board discovery
-│   └── email_sender.py       # SendGrid email report delivery
-├── prompts/
-│   └── scoring_agent.py      # Weighted scoring prompt
-├── frontend/
-│   ├── index.html       # Standalone SPA frontend
-│   ├── nginx.conf       # Nginx reverse-proxy config
-│   └── Dockerfile       # Nginx container build
-├── templates/
-│   └── index.html       # FastAPI-served frontend
-├── docker-compose.yml   # Backend + frontend orchestration
-├── Dockerfile           # Backend container build
-├── uploads/             # Uploaded CVs (auto-created)
-├── reports/             # Generated reports (configurable via OUTPUT_DIR)
-├── .env                 # API keys + configuration
-├── .env.example         # Environment variable template
-└── pyproject.toml       # Python dependencies (uv)
-```
-
-## Data Flow
-
-```
-User uploads CV (PDF/DOCX)
-        │
-        ▼
-FastAPI saves file → returns task_id
-        │
-        ▼
-Background task starts pipeline:
-  ┌──────────────────────────────────────────────────┐
-  │  1. Orchestrator Agent receives task             │
-  │     │                                            │
-  │     ▼                                            │
-  │  2. CV Researcher Agent                          │
-  │     → calls analyze_cv_and_extract_terms()       │
-  │     → LLM extracts skills, roles, queries        │
-  │     │                                            │
-  │     ▼                                            │
-  │  3. Web Search Agent                             │
-  │     → calls search_eu_job_opportunities()        │
-  │     → 62 concurrent Serper API calls             │
-  │     → Crawl4AI scrapes full job descriptions     │
-  │     → Company enrichment via website crawl       │
-  │     → Direct EU board discovery (optional)       │
-  │     → dedup, pre-score results                   │
-  │     │                                            │
-  │     ▼                                            │
-  │  4. Report Writer Tool                           │
-  │     → calls write_opportunities_report()         │
-  │     → LLM ranks & tiers opportunities            │
-  │     → writes .md + .json files                   │
-  │     │                                            │
-  │     ▼                                            │
-  │  5. Email Report (optional)                      │
-  │     → Builds styled HTML from JSON report        │
-  │     → Sends via SendGrid API                     │
-  │     → Custom FROM/TO/subject fields              │
-  └──────────────────────────────────────────────────┘
-        │
-        ▼
-SSE streams logs → Frontend displays results
-        │
-        ▼
-User downloads Markdown / JSON reports
-```
-
-## Getting Started
-
-### Prerequisites
-
-- Python 3.10+
-- [uv](https://docs.astral.sh/uv/) (fast Python package manager)
-- API keys: [OpenRouter](https://openrouter.ai) + [Serper.dev](https://serper.dev)
-
-### Setup
+**Requirements:** Python 3.10+, [uv](https://docs.astral.sh/uv/).
 
 ```bash
-# Clone & enter directory
-git clone <repo> && cd eu-job-hunter
-
-# Install dependencies
+git clone <repo> && cd work
 uv sync
-
-# Configure API keys (copy template)
-cp .env.example .env
-# Edit .env with your keys
-
-# Run CLI (direct)
-uv run python main.py my_cv.pdf
-
-# Run web app
-uv run python app.py
-# → Open http://localhost:8000
+cp .env.example .env   # fill in your keys — see below
 ```
 
-### Environment Variables
+### Minimum config (`.env`)
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `OPENROUTER_API_KEY` | ✅ | — | OpenRouter API key |
-| `SERPER_API_KEY` | ✅ | — | Serper.dev API key |
-| `MODEL` | ❌ | `openai/gpt-4o-mini` | Any OpenRouter model slug |
-| `EU_LOCATIONS` | ❌ | 10 EU countries | Comma-separated target countries |
-| `OUTPUT_DIR` | ❌ | `./reports` | Report output directory |
-| `CRAWL4AI_MAX_CONCURRENT` | ❌ | `10` | Parallel browser tabs for crawling |
-| `COMPANY_ENRICH_MAX` | ❌ | `20` | Max companies to enrich per run |
-| `ENABLE_DIRECT_CRAWL` | ❌ | `true` | Set `false` to skip direct board crawling |
-| `DIRECT_CRAWL_MAX_PER_BOARD` | ❌ | `15` | Pages per direct board crawl |
-| `SENDGRID_API_KEY` | ❌* | — | SendGrid API key (for email reports) |
-| `SENDGRID_FROM_EMAIL` | ❌* | — | Default sender email address |
-| `SENDGRID_TO_EMAIL` | ❌* | — | Default recipient email address |
-| `ENABLE_EMAIL` | ❌ | `false` | Set `true` to send email after each run |
+| Variable | Required | Notes |
+|---|---|---|
+| `OPENROUTER_API_KEY` | ✅ | LLM backend — free-tier models work fine |
+| `SERPER_API_KEY` | ✅ | Google Search API (2,500 free queries, one-time) |
+| `TELEGRAM_BOT_TOKEN` | ✅ | From [@BotFather](https://t.me/BotFather) |
+| `TELEGRAM_CHAT_ID` | ✅ | Your Telegram user ID — only this ID can trigger a search |
+| `TELEGRAM_CV_PATH` | ✅ | Path to the CV the bot searches against |
 
-\* Required only if `ENABLE_EMAIL=true` or when using the email checkbox in the frontend.
+Everything else (`ADZUNA_APP_ID`, `APIFY_API_TOKEN`, `EU_LOCATIONS`, ...) is optional and documented with cost/behavior notes in `.env.example`. Paid sources (Apify) are off by default (`ENABLE_APIFY=false`).
 
-## Email Reports
+### Run it
 
-The pipeline can optionally email the ranked results as a styled HTML report via **SendGrid**.
-
-### How to enable
-
-**Via frontend:** Check "Send report via email", fill in the FROM/TO/Subject fields, and run the pipeline.
-
-**Via CLI/env:** Set these in `.env`:
-```env
-ENABLE_EMAIL=true
-SENDGRID_API_KEY=SG.your_api_key_here
-SENDGRID_FROM_EMAIL=you@example.com
-SENDGRID_TO_EMAIL=you@example.com
+```bash
+uv run python run_telegram_bot.py
 ```
 
-### What the email looks like
+Leave this running in a terminal you control (not something that gets killed after a few minutes). Then message your bot:
 
-- Header with candidate name, opportunity count, and query stats
-- Tiered result cards: **🔥 TOP PICKS**, **✅ GOOD FITS**, **📌 WORTH EXPLORING**
-- Each card shows: title, company, score, snippet, match reasons, and concerns
-- Apply links direct you to the job posting
-- Clean, mobile-friendly HTML with inline styles
+- `/search` — run a search, get the report back on Telegram
+- `/status` — check if a search is currently running
 
-### Spam prevention
+### CV analysis cache
 
-The subject line is customizable from the frontend. Using a personalized subject (e.g., *"EU Job Report — John Doe — June 2026"*) improves deliverability. The default fallback is *"EU Job Hunter Report — YYYY-MM-DD"*.
+The first `/search` needs a CV-analysis pass (an LLM call). If a `data/cv_analysis_cache.json` file exists, it's used directly and that step is skipped entirely — since your CV doesn't change run to run, there's no reason to re-analyze it (and re-analyzing it means depending on a free-tier model that has, in practice, occasionally been unreliable). Delete that file to force a fresh analysis next time.
 
-### Programmatic usage
+### Web UI (alternative to Telegram)
 
-```python
-from tools.email_sender import send_report_email
-
-result = send_report_email(
-    subject="EU Job Report — Custom Subject",
-    report_path="reports/opportunities_20260628_120000.json",
-    from_email="sender@example.com",
-    to_email="recipient@example.com",
-)
-# Returns {"status": "success", "status_code": 202}
-# Or {"status": "error", "message": "..."}
+```bash
+uv run uvicorn app:app --port 8000
 ```
 
-## Why OpenRouter?
+Opens a simple upload-a-CV-and-run web page at `http://localhost:8000`, useful for a one-off run without going through Telegram.
 
-OpenRouter provides a **unified API** for 200+ LLMs. This project uses it to:
+## Project structure
 
-- **Avoid vendor lock-in** — swap models via one env variable
-- **Free tier access** — Llama 3.3 70B, Gemma 3, Mistral 7B at $0
-- **Fallback routing** — if one provider is down, OpenRouter fails over
-- **Cost optimization** — use cheap models for structured extraction, smart ones for ranking
+```
+main.py                    # the pipeline itself (search, filter, rank, report)
+run_telegram_bot.py         # entry point for the Telegram bot
+app.py                       # entry point for the web UI
+tools/
+  job_apis.py                # free (+ optional paid) job-board API clients
+  crawl4ai_scraper.py         # full job-description scraping
+  direct_board_crawler.py     # direct EU board discovery
+  company_enricher.py         # company-page enrichment
+  store.py                    # SQLite "already reported" tracking
+  telegram_bot.py             # bot commands, auth, run lock
+  email_sender.py              # optional SendGrid email delivery
+prompts/scoring_agent.py     # the ranking prompt
+data/                         # local state — seen-jobs DB, CV analysis cache (gitignored)
+Ali_out/                      # generated reports (gitignored)
+tests/                        # real, runnable tests — no mocked-away load-bearing logic
+```
+
+## Cost
+
+Free by default: Arbeitnow/Remotive/RemoteOK/Jobicy/Bundesagentur need no key, Adzuna's free tier covers normal usage, Serper's one-time free allotment lasts months at this query volume, and the default LLM model is free-tier. The only thing that costs real money is Apify (LinkedIn/WTTJ/Indeed scraping), which is opt-in and off unless you explicitly enable it.
