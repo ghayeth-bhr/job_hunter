@@ -94,21 +94,33 @@ SERPER_API_KEY = os.getenv("SERPER_API_KEY", "YOUR_SERPER_API_KEY_HERE")
 #   "anthropic/claude-3.5-haiku"             (paid, fast & smart)
 #   "openai/gpt-4o"                          (paid, most capable)
 # "openai/gpt-oss-120b:free" was the default until a live run (2026-08-16)
-# hit a 404 from OpenRouter: that slug was pulled from the free tier ("use
-# this slug instead: openai/gpt-oss-120b" — the paid version). Confirmed via
-# GET https://openrouter.ai/api/v1/models that it's genuinely gone from the
-# free list; swapped the default to one confirmed still free at that time.
-# Re-check https://openrouter.ai/models?max_price=0 if these stop working —
-# the free roster rotates on its own schedule, not a fixed one.
-MODEL = os.getenv("MODEL", "openai/gpt-oss-20b:free")
+# hit a 404 from OpenRouter: that slug was pulled from the free tier. Its
+# replacement, "openai/gpt-oss-20b:free", suffered the identical fate --
+# confirmed via a live 404 on 2026-08-22 ("This model is unavailable for
+# free"). Re-checked the live roster (GET /api/v1/models) and instruction-
+# tested every current free-tier candidate directly (not by name/vibes):
+# most of the nvidia/nemotron-3.x line are reasoning models that spend
+# their whole token budget narrating ("We need to respond with...") before
+# ever reaching an answer, several other candidates return empty output on
+# a JSON-generation task despite answering plain questions fine, and two
+# (z-ai/glm-5.2, google/gemma-4-31b-it) were live-429-rate-limited at test
+# time. "poolside/laguna-s-2.1:free" and "liquid/lfm-2.5-2.6b:free" were
+# the only two that reliably returned clean, valid, correctly-typed JSON on
+# a JSON-object test prompt -- swapped the default and fallback chain to
+# those. Re-check https://openrouter.ai/models?max_price=0 (and re-verify
+# with an actual JSON-output test, not just a plain-text reply -- a model
+# can answer "OK" fine and still fail at JSON) if these stop working.
+MODEL = os.getenv("MODEL", "poolside/laguna-s-2.1:free")
 
 # Fallback chain tried (in order) if MODEL 4xxs, rate-limits, or is pulled from
-# the free tier. MODEL itself is always tried first.
+# the free tier. MODEL itself is always tried first. nemotron/gemma kept as
+# last-resort fallbacks despite their issues above -- still better than
+# nothing if both verified-clean models are down simultaneously.
 FREE_MODEL_FALLBACKS = [
-    "openai/gpt-oss-20b:free",
+    "poolside/laguna-s-2.1:free",
+    "liquid/lfm-2.5-2.6b:free",
     "nvidia/nemotron-3-nano-30b-a3b:free",
     "google/gemma-4-31b-it:free",
-    "nvidia/nemotron-3-ultra-550b-a55b:free",
 ]
 
 # OpenRouter base URL (OpenAI-compatible)
@@ -127,6 +139,18 @@ EU_LOCATIONS = os.getenv(
     "EU_LOCATIONS",
     "France,Germany,Netherlands,Spain,Portugal,Poland,Czech Republic,Sweden,Switzerland,Canada",
 ).split(",")
+
+# Cached CV analysis (2026-08-22) -- this project's free-tier OpenRouter
+# model has repeatedly proven unreliable specifically for the CV-extraction
+# step (silent truncation, model rotation/404s, reasoning models that burn
+# their token budget on narration instead of JSON). Since the candidate's
+# CV doesn't change run-to-run, a one-time high-quality analysis (done
+# directly, not by a flaky free model) removes that entire failure surface
+# for every future run. Not a production-grade design (a real product
+# would need to detect CV changes and re-analyze) -- fine for personal MVP
+# use per explicit instruction. To force a fresh LLM-based analysis again,
+# just delete this file.
+CV_ANALYSIS_CACHE = Path(os.getenv("CV_ANALYSIS_CACHE", "data/cv_analysis_cache.json"))
 
 # Apify (paid) source scoping — trimmed for cost, confirmed 2026-08-17:
 # Apify's Free plan has a hard $5/month cap with NO overage option (blocked
@@ -166,11 +190,26 @@ _OR_HEADERS = {
     "X-Title": YOUR_SITE_NAME,
 }
 
+# Neither client sets an explicit timeout below by accident -- confirmed
+# live (2026-08-22): the openai SDK's default is read=600s (10 min) with 2
+# retries. _llm() tries up to 5 models per call, and ranking calls it per
+# batch, twice (double-scoring), with a retry-once-per-batch on top -- a
+# free-tier OpenRouter model that's merely slow/congested (not a clean
+# error) could legitimately block the whole pipeline for hours with zero
+# output and no failure message (a slow-but-connected call isn't a crash,
+# so the loud-failure Telegram messaging never triggers). This is the
+# leading suspect for a Telegram-triggered run that never completed and
+# never reported a failure either. 60s is generous for a real chat
+# completion on these models but cuts off the pathological case fast
+# enough that main.py's own model-fallback chain can actually do its job.
+_LLM_TIMEOUT = 60.0
+
 # Async client — handed to the Agents SDK
 _async_or_client = openai.AsyncOpenAI(
     api_key=OPENROUTER_API_KEY,
     base_url=OPENROUTER_BASE_URL,
     default_headers=_OR_HEADERS,
+    timeout=_LLM_TIMEOUT,
 )
 
 # Sync client — used inside tool functions (they are normal sync Python)
@@ -178,6 +217,7 @@ _sync_or_client = openai.OpenAI(
     api_key=OPENROUTER_API_KEY,
     base_url=OPENROUTER_BASE_URL,
     default_headers=_OR_HEADERS,
+    timeout=_LLM_TIMEOUT,
 )
 
 # Tell the Agents SDK to use our OpenRouter async client globally
@@ -416,7 +456,6 @@ def search_eu_job_opportunities(search_terms_json: str) -> str:
     except json.JSONDecodeError:
         return json.dumps({"error": "Invalid JSON", "raw": search_terms_json[:400]})
 
-    suggested = terms.get("suggested_search_queries", [])
     job_titles = terms.get("job_titles", [])
     tech_skills = terms.get("skills_technical", [])
     tools = terms.get("tools_frameworks", [])
@@ -426,6 +465,17 @@ def search_eu_job_opportunities(search_terms_json: str) -> str:
         "french" in lang.lower() or "français" in lang.lower() for lang in languages
     )
     current_year = datetime.now().year
+
+    # A cached CV analysis (CV_ANALYSIS_CACHE) is meant to be reused across
+    # many future runs, so its suggested_search_queries use a literal
+    # "{current_year}" placeholder instead of a baked-in year -- otherwise
+    # it would rot exactly like the hardcoded-"2026" bug this project
+    # already fixed once for the live-LLM path (which bakes in the real
+    # year at call time and never needs this substitution).
+    suggested = [
+        q.replace("{current_year}", str(current_year))
+        for q in terms.get("suggested_search_queries", [])
+    ]
 
     # ── Build a LEAN query set ───────────────────────────────────────────────
     # Kept intentionally small (~15-20 total): tools/job_apis.py now covers
@@ -1498,25 +1548,29 @@ async def run_pipeline(
         sys.exit(1)
 
     # ── Step 1: CV Analysis ───────────────────────────────────────────────────
-    print("\n📄 Step 1/5: Analysing CV...", flush=True)
-    try:
-        cv_data_json = analyze_cv_and_extract_search_terms(cv_path)
-    except CredentialExpiredError as e:
-        # If OpenRouter is dead, the run genuinely can't do much -- no CV
-        # analysis means no job_titles/keywords to search with at all.
-        # Fail loud and specific here rather than limping into a run that
-        # would just produce a wall of confusing downstream noise with no
-        # clear cause.
-        print(f"  [CREDENTIAL EXPIRED] {e.source}: {e.reason}")
-        return {
-            "output": f"⚠️ Pipeline could not run — {e.source} credential expired: {e.reason}",
-            "total_jobs": 0,
-            "new_jobs": 0,
-            "sources_unavailable": [
-                {"source": e.source, "kind": "CREDENTIAL EXPIRED", "reason": e.reason, "confirmed": e.confirmed}
-            ],
-            "email": {},
-        }
+    if CV_ANALYSIS_CACHE.exists():
+        print(f"\n📄 Step 1/5: Using cached CV analysis ({CV_ANALYSIS_CACHE})...", flush=True)
+        cv_data_json = CV_ANALYSIS_CACHE.read_text(encoding="utf-8")
+    else:
+        print("\n📄 Step 1/5: Analysing CV...", flush=True)
+        try:
+            cv_data_json = analyze_cv_and_extract_search_terms(cv_path)
+        except CredentialExpiredError as e:
+            # If OpenRouter is dead, the run genuinely can't do much -- no CV
+            # analysis means no job_titles/keywords to search with at all.
+            # Fail loud and specific here rather than limping into a run that
+            # would just produce a wall of confusing downstream noise with no
+            # clear cause.
+            print(f"  [CREDENTIAL EXPIRED] {e.source}: {e.reason}")
+            return {
+                "output": f"⚠️ Pipeline could not run — {e.source} credential expired: {e.reason}",
+                "total_jobs": 0,
+                "new_jobs": 0,
+                "sources_unavailable": [
+                    {"source": e.source, "kind": "CREDENTIAL EXPIRED", "reason": e.reason, "confirmed": e.confirmed}
+                ],
+                "email": {},
+            }
     # analyze_cv_and_extract_search_terms() already catches JSONDecodeError
     # internally and returns the raw (possibly invalid) text in that case —
     # but this second parse here was unguarded, so that same invalid text

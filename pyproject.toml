@@ -2,6 +2,15 @@
 requires = ["setuptools>=64.0"]
 build-backend = "setuptools.build_meta"
 
+[tool.uv]
+# This is a script-based app (main.py/app.py at the repo root), not a
+# distributable library -- there's nothing to build/install as a package.
+# Without this, `uv run` tries to editable-install "eu-job-hunter" itself,
+# and setuptools' automatic package discovery chokes on the repo's data/
+# output directories (data/, Ali_out/, reports/, schemas/, frontend/,
+# templates/) being mistaken for top-level Python packages.
+package = false
+
 [project]
 name = "eu-job-hunter"
 version = "0.1.0"

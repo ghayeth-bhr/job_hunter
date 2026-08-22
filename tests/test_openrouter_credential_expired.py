@@ -12,7 +12,7 @@ import json
 import re
 import sys
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 import httpx
 import openai
@@ -145,7 +145,19 @@ def test_run_pipeline_step1_credential_failure_returns_clean_dict_not_crash():
         raise CredentialExpiredError("OpenRouter", "API key rejected (confirmed): fake", confirmed=True)
 
     with patch.object(main, "analyze_cv_and_extract_search_terms", side_effect=_always_dead), \
-         patch("pathlib.Path.exists", return_value=True):
+         patch("pathlib.Path.exists", return_value=True), \
+         patch.object(main, "CV_ANALYSIS_CACHE", MagicMock(exists=MagicMock(return_value=False))):
+        # The blanket Path.exists patch above (needed so the fake cv_path
+        # passes its own existence check) would otherwise also make
+        # CV_ANALYSIS_CACHE.exists() report True, short-circuiting Step 1
+        # straight to the cache and never calling the mocked
+        # analyze_cv_and_extract_search_terms at all -- silently turning
+        # this into a real, unmocked, network-hitting pipeline run instead
+        # of the intended fast failure-path test (caught live: this hung
+        # for 2+ minutes instead of returning immediately). Swapping in a
+        # non-Path stand-in (rather than trying to patch .exists per-path)
+        # sidesteps it entirely, since the blanket patch only touches real
+        # pathlib.Path instances.
         result = asyncio.run(main.run_pipeline("/fake/cv.pdf"))
 
     assert result["total_jobs"] == 0
