@@ -1,0 +1,1775 @@
+{
+  "meta": {
+    "candidate": "Ghayeth Ben Haj Rhouma",
+    "note": "Consolidated from 11 real pipeline runs (2026-08-16 to 2026-08-22), deduplicated by URL (most recent scoring wins), retroactively filtered to internship/stage-PFE-only postings.",
+    "source_reports_merged": 11,
+    "total_before_dedup": 343,
+    "unique_after_dedup": 124,
+    "unique_after_internship_filter": 74,
+    "tier_breakdown": {
+      "TOP PICKS": 23,
+      "GOOD FITS": 13,
+      "DISPUTED": 36,
+      "WORTH EXPLORING": 2
+    },
+    "generated_at": "2026-08-22 21:00"
+  },
+  "ranked_opportunities": [
+    {
+      "score": 10,
+      "tier": "TOP PICKS",
+      "title": "Software Engineer Intern",
+      "company": "Pony AI",
+      "location": "Madrid, Spain",
+      "remote_policy": "Remote/Hybrid",
+      "salary": "N/A",
+      "apply_url": "https://www.welcometothejungle.com/en/companies/pony-ai/jobs/software-engineer-intern-generalist_madrid_rxvu76t5",
+      "match_reasons": [
+        "Python, ML frameworks, JavaScript, TypeScript match",
+        "Intern role",
+        "Startup with active engineering blog"
+      ],
+      "concerns": [
+        "Remote policy may be flexible but check for relocation assistance"
+      ],
+      "recommended_angle": "Show your open-source contributions and AI projects, tailor cover letter to Pony AI's mission.",
+      "source_url": "https://www.welcometothejungle.com/en/companies/pony-ai/jobs/software-engineer-intern-generalist_madrid_rxvu76t5",
+      "platform": "unknown"
+    },
+    {
+      "score": 10,
+      "tier": "TOP PICKS",
+      "title": "Software Engineer Intern",
+      "company": "Snowflake",
+      "location": "Warsaw, Poland",
+      "remote_policy": "Remote/Hybrid",
+      "salary": "N/A",
+      "apply_url": "https://careers.snowflake.com/us/en/job/SNCOUS3045856C74A4469EBA81A176CC0BEF8FEXTERNALENUSFC1923C1B1514458A79240D58331A5BE/Software-Engineer-Intern-Warsaw-Security",
+      "match_reasons": [
+        "Python, SQL, Java match",
+        "Intern role",
+        "Strong data engineering culture"
+      ],
+      "concerns": [
+        "Remote policy may require occasional onsite visits"
+      ],
+      "recommended_angle": "Show your data engineering projects and remote collaboration experience.",
+      "source_url": "https://careers.snowflake.com/us/en/job/SNCOUS3045856C74A4469EBA81A176CC0BEF8FEXTERNALENUSFC1923C1B1514458A79240D58331A5BE/Software-Engineer-Intern-Warsaw-Security",
+      "platform": "unknown"
+    },
+    {
+      "score": 10,
+      "tier": "TOP PICKS",
+      "title": "Software Engineering Intern",
+      "company": "Junior AI",
+      "location": "N/A",
+      "remote_policy": "Remote",
+      "salary": "N/A",
+      "apply_url": "https://jobs.ashbyhq.com/junior/23ee686b-d305-4ac9-860d-16c99ddb4891?embed=true",
+      "match_reasons": [
+        "Python, ML frameworks match",
+        "Intern role",
+        "Startup AI culture"
+      ],
+      "concerns": [
+        "Remote policy may require flexible hours"
+      ],
+      "recommended_angle": "Emphasize your AI projects and remote collaboration skills.",
+      "source_url": "https://jobs.ashbyhq.com/junior/23ee686b-d305-4ac9-860d-16c99ddb4891?embed=true",
+      "platform": "unknown"
+    },
+    {
+      "id": 31,
+      "score": 10,
+      "tier": "TOP PICKS",
+      "title": "internship-ml-modeling-engineer-ai-hardware-fall-2026-at-tesla-4434789414",
+      "company": "Tesla / NVIDIA AI",
+      "location": "Santa Clara, CA",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://www.linkedin.com/jobs/view/internship-ml-modeling-engineer-ai-hardware-fall-2026-at-tesla-4434789414",
+      "match_reasons": [
+        "ML modeling AI hardware internship aligns with candidate's AI and ML expertise",
+        "Location in Silicon Valley offers high exposure",
+        "Strong company brand and potential for mentorship"
+      ],
+      "concerns": [],
+      "recommended_angle": "Emphasize your experience with ML frameworks and hardware acceleration; express a strong desire to contribute to cutting‑edge AI hardware projects.",
+      "source_url": "https://www.linkedin.com/jobs/view/internship-ml-modeling-engineer-ai-hardware-fall-2026-at-tesla-4434789414",
+      "platform": "linkedin"
+    },
+    {
+      "id": 23,
+      "score": 10,
+      "tier": "TOP PICKS",
+      "title": "Stages à l'étranger, Internship abroad, job abroad | À la recherche d'un stage de fin d'études | Facebook",
+      "company": "Facebook",
+      "location": "",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://www.facebook.com/groups/workaroundtheworld/posts/4420123301594697/",
+      "match_reasons": [
+        "Python and OpenCV skills match internship requirements",
+        "Internship level aligns with candidate's seniority",
+        "Facebook brand offers strong learning opportunities"
+      ],
+      "concerns": [],
+      "recommended_angle": "Highlight your experience with Python and OpenCV in industrial settings, emphasize adaptability to new environments and willingness to relocate.",
+      "source_url": "https://www.facebook.com/groups/workaroundtheworld/posts/4420123301594697/",
+      "platform": "unknown"
+    },
+    {
+      "score": 9.5,
+      "tier": "TOP PICKS",
+      "title": "Software Engineer Intern",
+      "company": "",
+      "location": "Canada (Remote)",
+      "remote_policy": "Remote",
+      "salary": "",
+      "apply_url": "https://remotezest.up.railway.app/job/remote-software-engineer-intern-2026-reputed-company-canada",
+      "match_reasons": [
+        "Remote internship fits location flexibility",
+        "Software engineering skills match",
+        "Reputed company in Canada"
+      ],
+      "concerns": [
+        "Company details unclear; verify credibility"
+      ],
+      "recommended_angle": "Highlight remote work experience and self-motivation. Emphasize your tech stack and ability to work independently.",
+      "source_url": "https://remotezest.up.railway.app/job/remote-software-engineer-intern-2026-reputed-company-canada",
+      "platform": "remotezest"
+    },
+    {
+      "score": 9,
+      "tier": "TOP PICKS",
+      "title": "Software Engineer Intern",
+      "company": "PlusAI",
+      "location": "Santa Clara, CA",
+      "remote_policy": "Onsite",
+      "salary": "N/A",
+      "apply_url": "https://www.welcometothejungle.com/en/companies/plusai/jobs/software-engineer-intern-robotics_santa-clara-ca_4dobdvvu",
+      "match_reasons": [
+        "Python, C/C++, robotics frameworks match",
+        "Intern role",
+        "Startup robotics culture"
+      ],
+      "concerns": [
+        "Onsite location may require relocation"
+      ],
+      "recommended_angle": "Emphasize your robotics experience and willingness to relocate to Santa Clara.",
+      "source_url": "https://www.welcometothejungle.com/en/companies/plusai/jobs/software-engineer-intern-robotics_santa-clara-ca_4dobdvvu",
+      "platform": "unknown"
+    },
+    {
+      "score": 9,
+      "tier": "TOP PICKS",
+      "title": "SAP iXp Intern - AI Engineer",
+      "company": "SAP",
+      "location": "N/A",
+      "remote_policy": "N/A",
+      "salary": "N/A",
+      "apply_url": "https://flexa.careers/jobs/sap-sap-ixp-intern-ai-engineer-6a5e833d40b05af3db700517",
+      "match_reasons": [
+        "Python, SQL, Java match",
+        "Intern role",
+        "Large enterprise engineering culture"
+      ],
+      "concerns": [
+        "Onsite location unknown; may require relocation"
+      ],
+      "recommended_angle": "Highlight your experience with enterprise AI solutions and adaptability to SAP's environment.",
+      "source_url": "https://flexa.careers/jobs/sap-sap-ixp-intern-ai-engineer-6a5e833d40b05af3db700517",
+      "platform": "unknown"
+    },
+    {
+      "score": 9,
+      "tier": "TOP PICKS",
+      "title": "Quality Software Engineer Intern",
+      "company": "Leonardo DRS",
+      "location": "Bridgeton, Missouri",
+      "remote_policy": "Onsite",
+      "salary": "N/A",
+      "apply_url": "https://interninsider.me/internships/leonardo-drs/quality-software-engineer-intern-96b0f46a-ead4-4973-b8cd-5be04bf99646",
+      "match_reasons": [
+        "Python, SQL, C/C++ match",
+        "Intern role",
+        "Aerospace engineering culture"
+      ],
+      "concerns": [
+        "Onsite location may require relocation"
+      ],
+      "recommended_angle": "Highlight your quality assurance and software engineering experience in safety-critical systems.",
+      "source_url": "https://interninsider.me/internships/leonardo-drs/quality-software-engineer-intern-96b0f46a-ead4-4973-b8cd-5be04bf99646",
+      "platform": "unknown"
+    },
+    {
+      "id": 35,
+      "score": 9,
+      "tier": "TOP PICKS",
+      "title": "AI Engineer Intern (Unpaid)",
+      "company": "AI Future Leaders Inc",
+      "location": "",
+      "remote_policy": "",
+      "salary": "Unpaid",
+      "apply_url": "https://ca.linkedin.com/jobs/view/ai-engineer-intern-unpaid-internship-fall-2026-at-ai-future-leaders-inc-4438936829",
+      "match_reasons": [
+        "Internship in AI engineering",
+        "Candidate has LLM, Prompt Engineering, LangChain experience",
+        "Strong Python and MLOps background"
+      ],
+      "concerns": [
+        "Unpaid position may limit financial flexibility"
+      ],
+      "recommended_angle": "Show passion for AI research, highlight any side projects, and express willingness to contribute full time after internship.",
+      "source_url": "https://ca.linkedin.com/jobs/view/ai-engineer-intern-unpaid-internship-fall-2026-at-ai-future-leaders-inc-4438936829",
+      "platform": "linkedin"
+    },
+    {
+      "id": 41,
+      "score": 9,
+      "tier": "TOP PICKS",
+      "title": "Software Engineer Intern (Computer Vision)",
+      "company": "Philo Homes",
+      "location": "New York, NY",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://www.linkedin.com/jobs/view/software-engineer-intern-computer-vision-bilingual-chinese-at-philo-homes-4453633369",
+      "match_reasons": [
+        "Internship in computer vision",
+        "Candidate has OpenCV, MediaPipe, YOLOv8, SAM 2",
+        "Experience with React and TypeScript for UI"
+      ],
+      "concerns": [
+        "Remote policy not specified"
+      ],
+      "recommended_angle": "Show bilingual skills if relevant, highlight CV projects, and express enthusiasm for building real‑world vision solutions.",
+      "source_url": "https://www.linkedin.com/jobs/view/software-engineer-intern-computer-vision-bilingual-chinese-at-philo-homes-4453633369",
+      "platform": "linkedin"
+    },
+    {
+      "id": 46,
+      "score": 9,
+      "tier": "TOP PICKS",
+      "title": "Praktikum - Political Data Engineering (w/d/m)",
+      "company": "Christundcompany",
+      "location": "Berlin",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://www.arbeitnow.com/jobs/companies/christundcompany/praktikum-political-data-engineering-berlin-285507",
+      "platform": "arbeitnow",
+      "match_reasons": [
+        "Python, SQL, and data engineering skills align with role",
+        "Internship position matches seniority",
+        "Berlin location suitable for on-site work"
+      ],
+      "concerns": [
+        "Company size and visibility unknown"
+      ],
+      "recommended_angle": "Show enthusiasm for political data projects; mention relevant data pipeline experience",
+      "source_url": "https://www.arbeitnow.com/jobs/companies/christundcompany/praktikum-political-data-engineering-berlin-285507"
+    },
+    {
+      "id": 47,
+      "score": 9,
+      "tier": "TOP PICKS",
+      "title": "DevOps Software Engineer Intern (Enrolled Students Only) (m/f/d)",
+      "company": "Crewmeister",
+      "location": "Munich",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://www.arbeitnow.com/jobs/companies/crewmeister/devops-software-engineer-intern-enrolled-students-only-munich-42883",
+      "platform": "arbeitnow",
+      "match_reasons": [
+        "Docker, CI/CD, Git, Linux skills match DevOps responsibilities",
+        "Internship aligns with seniority",
+        "Munich location"
+      ],
+      "concerns": [
+        "Company growth may mean high workload"
+      ],
+      "recommended_angle": "Highlight ability to learn quickly and contribute to CI/CD improvements",
+      "source_url": "https://www.arbeitnow.com/jobs/companies/crewmeister/devops-software-engineer-intern-enrolled-students-only-munich-42883"
+    },
+    {
+      "id": 48,
+      "score": 9,
+      "tier": "TOP PICKS",
+      "title": "Working Student - Digital Analytics (All Genders)",
+      "company": "Digitl GmbH",
+      "location": "Hamburg",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://www.arbeitnow.com/jobs/companies/digitl-gmbh/working-student-digital-analytics-all-genders-hamburg-60980",
+      "platform": "arbeitnow",
+      "match_reasons": [
+        "JavaScript, SQL, and analytics skills fit Digital Analytics role",
+        "Working student aligns with seniority",
+        "Hamburg location"
+      ],
+      "concerns": [
+        "Limited remote flexibility"
+      ],
+      "recommended_angle": "Show interest in server-side tracking and analytics; mention any prior analytics projects",
+      "source_url": "https://www.arbeitnow.com/jobs/companies/digitl-gmbh/working-student-digital-analytics-all-genders-hamburg-60980"
+    },
+    {
+      "id": 49,
+      "score": 9,
+      "tier": "TOP PICKS",
+      "title": "Working Student - Tech Digital Analytics (All Genders)",
+      "company": "Digitl GmbH",
+      "location": "Hamburg",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://www.arbeitnow.com/jobs/companies/digitl-gmbh/working-student-tech-digital-analytics-all-genders-hamburg-97457",
+      "platform": "arbeitnow",
+      "match_reasons": [
+        "JavaScript, SQL, and analytics skills fit Digital Analytics role",
+        "Working student aligns with seniority",
+        "Hamburg location"
+      ],
+      "concerns": [
+        "Limited remote flexibility"
+      ],
+      "recommended_angle": "Show interest in server-side tracking and analytics; mention any prior analytics projects",
+      "source_url": "https://www.arbeitnow.com/jobs/companies/digitl-gmbh/working-student-tech-digital-analytics-all-genders-hamburg-97457"
+    },
+    {
+      "id": 50,
+      "score": 9,
+      "tier": "TOP PICKS",
+      "title": "Praktikant AI Engineer (m/w/d)",
+      "company": "energized& Company GmbH",
+      "location": "Munich",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://www.arbeitnow.com/jobs/companies/energized-company-gmbh/praktikant-ai-engineer-munich-370373",
+      "platform": "arbeitnow",
+      "match_reasons": [
+        "Python, ML, and AI skills match AI Engineer role",
+        "Internship aligns with seniority",
+        "Munich location"
+      ],
+      "concerns": [
+        "Company focus on B2B growth may require business understanding"
+      ],
+      "recommended_angle": "Emphasize AI tool experience and ability to support B2B growth initiatives",
+      "source_url": "https://www.arbeitnow.com/jobs/companies/energized-company-gmbh/praktikant-ai-engineer-munich-370373"
+    },
+    {
+      "score": 8,
+      "tier": "TOP PICKS",
+      "title": "Software Engineering Internship",
+      "company": "Axon Enterprise",
+      "location": "",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://www.brightnetwork.co.uk/graduate-jobs/axon-enterprise/software-engineering-internship-2026",
+      "match_reasons": [
+        "Internship role matches candidate level",
+        "SQL and software engineering skills align",
+        "Axon Enterprise is a tech-focused company"
+      ],
+      "concerns": [
+        "Limited info on remote policy; may be onsite"
+      ],
+      "recommended_angle": "Show your experience with SQL and software engineering projects. Mention adaptability and teamwork skills.",
+      "source_url": "https://www.brightnetwork.co.uk/graduate-jobs/axon-enterprise/software-engineering-internship-2026",
+      "platform": "Bright Network"
+    },
+    {
+      "score": 8,
+      "tier": "TOP PICKS",
+      "title": "Software Engineer Internship",
+      "company": "QRT",
+      "location": "",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://nextleveljobs.eu/companies/qrt/jobs/6a1578e92b79606f5d8df586",
+      "match_reasons": [
+        "Internship role matches level",
+        "Python and SQL knowledge required; candidate has both",
+        "QRT is a tech startup with growth potential"
+      ],
+      "concerns": [
+        "FastAPI missing from skill set; may need to learn quickly"
+      ],
+      "recommended_angle": "Emphasize Python proficiency and willingness to learn FastAPI. Highlight any similar framework experience.",
+      "source_url": "https://nextleveljobs.eu/companies/qrt/jobs/6a1578e92b79606f5d8df586",
+      "platform": "nextleveljobs.eu"
+    },
+    {
+      "score": 8,
+      "tier": "TOP PICKS",
+      "title": "Software Engineer Intern",
+      "company": "Cargill",
+      "location": "Atlanta, GA, USA",
+      "remote_policy": "Onsite",
+      "salary": "",
+      "apply_url": "https://careers.cargill.com/en/job/atlanta/software-engineer-intern-summer-2027-atlanta-ga/23251/98765470480",
+      "match_reasons": [
+        "Internship level matches candidate",
+        "Software engineering skills align",
+        "Cargill offers large-scale engineering projects"
+      ],
+      "concerns": [
+        "Onsite requirement; relocation needed"
+      ],
+      "recommended_angle": "Show your experience with large-scale systems and adaptability. Mention any remote work experience you have had.",
+      "source_url": "https://careers.cargill.com/en/job/atlanta/software-engineer-intern-summer-2027-atlanta-ga/23251/98765470480",
+      "platform": "Cargill"
+    },
+    {
+      "score": 8,
+      "tier": "TOP PICKS",
+      "title": "Software Engineering Intern - Embedded Platforms",
+      "company": "N/A",
+      "location": "Palo Alto, CA",
+      "remote_policy": "Onsite",
+      "salary": "N/A",
+      "apply_url": "https://www.indeed.com/viewjob?jk=82b8a730e7a997f5",
+      "match_reasons": [
+        "C/C++, Python match",
+        "Intern role",
+        "Embedded systems focus"
+      ],
+      "concerns": [
+        "Onsite location may require relocation"
+      ],
+      "recommended_angle": "Show your embedded systems projects and RTOS experience.",
+      "source_url": "https://www.indeed.com/viewjob?jk=82b8a730e7a997f5",
+      "platform": "unknown"
+    },
+    {
+      "id": 32,
+      "score": 8,
+      "tier": "TOP PICKS",
+      "title": "400 Machine Learning Intern Germany Job Vacancies",
+      "company": "Various",
+      "location": "Germany",
+      "remote_policy": "onsite",
+      "salary": "",
+      "apply_url": "https://in.indeed.com/q-machine-learning-intern-germany-jobs.html",
+      "match_reasons": [
+        "Internship level matches",
+        "Python, ML, and distributed systems experience fit German ML internships",
+        "Onsite in Germany",
+        "Multiple companies with strong engineering culture"
+      ],
+      "concerns": [
+        "Postdated >6 weeks",
+        "Relocation to Germany may be required"
+      ],
+      "recommended_angle": "Emphasize your language skills and adaptability, and mention any projects that demonstrate cross-cultural collaboration.",
+      "source_url": "https://in.indeed.com/q-machine-learning-intern-germany-jobs.html",
+      "platform": "unknown"
+    },
+    {
+      "id": 42,
+      "score": 8,
+      "tier": "TOP PICKS",
+      "title": "Applied AI Engineer Intern",
+      "company": "Tesla / ASUS",
+      "location": "Boston, MA",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://www.linkedin.com/jobs/%E5%93%88%E5%B0%94%E6%BB%A8%E5%A4%A7%E5%AD%A6%E7%94%9F%E4%B8%8A%E9%97%A8_%E5%A4%A7%E5%AD%A6%E7%94%9F%E4%B8%8A%E9%97%A8%E6%9C%8D%E5%8A%A1%EF%BC%88%E5%BE%AE%E4%BF%A1%EF%BC%9A398436850%EF%BC%89%E5%BF%AB%E9%80%9F%E9%80%89%E7%85%A7%E7%89%87%EF%BC%8C%E5%90%8C%E5%9F%8E%E7%BE%8E%E5%A5%B3%EF%BC%8C%E9%9D%A2%E5%88%B0%E6%BB%A1%E6%84%8F%E4%BB%98%E6%AC%BE%EF%BC%8C30%E5%88%86%E9%92%9F%E5%86%85%E5%88%B0%E8%BE%BE%EF%BC%8C%E6%97%A0%E5%AE%9A%E9%87%91%EF%BC%8C%E8%AF%9A%E4%BF%A1%E7%AC%AC%E4%B8%80%EF%BC%81.XUcdrzx&LHGWFWO/-jobs",
+      "match_reasons": [
+        "Internship in applied AI and hardware",
+        "Candidate has on‑device inference, TensorRT, and LLM fine‑tuning skills",
+        "Experience with Python, C++, and Docker"
+      ],
+      "concerns": [
+        "Multiple companies listed; unclear primary employer"
+      ],
+      "recommended_angle": "Focus on AI hardware experience, showcase any embedded ML projects, and express interest in cutting‑edge automotive or robotics applications.",
+      "source_url": "https://www.linkedin.com/jobs/%E5%93%88%E5%B0%94%E6%BB%A8%E5%A4%A7%E5%AD%A6%E7%94%9F%E4%B8%8A%E9%97%A8_%E5%A4%A7%E5%AD%A6%E7%94%9F%E4%B8%8A%E9%97%A8%E6%9C%8D%E5%8A%A1%EF%BC%88%E5%BE%AE%E4%BF%A1%EF%BC%89%E5%BF%AB%E9%80%9F%E9%80%89%E7%85%A7%E7%89%87%EF%BC%8C%E5%90%8C%E5%9F%8E%E7%BE%8E%E5%A5%B3%EF%BC%8C%E9%9D%A2%E5%88%B0%E6%BB%A1%E6%84%8F%E4%BB%98%E6%AC%BE%EF%BC%8C30%E5%88%86%E9%92%9F%E5%86%85%E5%88%B0%E8%BE%BE%EF%BC%8C%E6%97%A0%E5%AE%9A%E9%87%91%EF%BC%8C%E8%AF%9A%E4%BF%A1%E7%AC%AC%E4%B8%80%EF%BC%81.XUcdrzx&LHGWFWO/-jobs",
+      "platform": "linkedin"
+    },
+    {
+      "id": 4,
+      "score": 8,
+      "tier": "TOP PICKS",
+      "title": "Working Student - AI Platform and Enablement (m/f/d)",
+      "company": "isaraerospace",
+      "location": "Parsdorf, Bavaria",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://www.arbeitnow.com/jobs/companies/isaraerospace/working-student-ai-platform-and-enablement-parsdorf-bavaria-73173",
+      "match_reasons": [
+        "Direct alignment with AI platform development and model deployment",
+        "Requires PyTorch/TensorFlow and inference endpoint experience",
+        "Tech-forward aerospace company with engineering culture"
+      ],
+      "concerns": [
+        "Onsite location in Bavaria may require relocation",
+        "No explicit remote policy mentioned"
+      ],
+      "recommended_angle": "Highlight your experience with open-source model deployment (Hugging Face, TensorRT) and your work with YOLO/SAM 2. Emphasize your familiarity with virtual machine inference setups.",
+      "source_url": "https://www.arbeitnow.com/jobs/companies/isaraerospace/working-student-ai-platform-and-enablement-parsdorf-bavaria-73173",
+      "platform": "arbeitnow"
+    },
+    {
+      "score": 7,
+      "tier": "GOOD FITS",
+      "title": "761 internship it Jobs in Netherlands, August 2026",
+      "company": "",
+      "location": "Netherlands",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "",
+      "match_reasons": [
+        "High number of internships, likely includes ML roles",
+        "Fresh posting (<2 weeks)"
+      ],
+      "concerns": [
+        "Unspecified companies; need to filter"
+      ],
+      "recommended_angle": "Target companies with strong ML focus and tailor cover letter.",
+      "source_url": "https://www.glassdoor.com/Job/netherlands-internship-it-jobs-SRCH_IL.0,11_IN178_KO12,25.htm",
+      "platform": "unknown",
+      "id": 39
+    },
+    {
+      "id": 44,
+      "score": 7,
+      "tier": "GOOD FITS",
+      "title": "Software Engineer Intern (Remote) - Jobs Ai",
+      "company": "Jobs Ai",
+      "location": "European Union (Remote)",
+      "remote_policy": "Remote",
+      "salary": "$50 - $120/hour",
+      "apply_url": "https://www.linkedin.com/jobs/view/software-engineer-intern-remote-at-jobs-ai-4409869580",
+      "match_reasons": [
+        "Internship level matches candidate seniority",
+        "Full-stack web development stack aligns with Python, JavaScript, TypeScript, React, FastAPI, Docker",
+        "Remote-friendly policy fits candidate’s flexibility"
+      ],
+      "concerns": [
+        "Hourly rate may be lower than desired",
+        "Limited information on company culture"
+      ],
+      "recommended_angle": "Highlight full-stack experience, remote collaboration, and rapid delivery in a short-term contract.",
+      "source_url": "https://www.linkedin.com/jobs/view/software-engineer-intern-remote-at-jobs-ai-4409869580",
+      "platform": "unknown"
+    },
+    {
+      "id": 2,
+      "score": 7,
+      "tier": "GOOD FITS",
+      "title": "AIMI Academic Year Research Internship | Center for Artificial Intelligence in Medicine & Imaging",
+      "company": "",
+      "location": "",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://aimi.stanford.edu/academic-year-research-internship",
+      "match_reasons": [
+        "Research focus on AI in medicine aligns with candidate's AI and computer vision expertise",
+        "Internship level matches candidate's experience",
+        "Opportunity to apply vision-language models in medical imaging"
+      ],
+      "concerns": [
+        "Medical imaging domain may require additional domain knowledge"
+      ],
+      "recommended_angle": "Highlight your AI and computer vision expertise, especially in medical imaging tools like OpenCV and YOLO, and discuss any related coursework.",
+      "source_url": "https://aimi.stanford.edu/academic-year-research-internship",
+      "platform": "unknown"
+    },
+    {
+      "id": 3,
+      "score": 7,
+      "tier": "GOOD FITS",
+      "title": "Research Internship: Future of Insurance with AI Agents - CITRIS and the Banatao Institute",
+      "company": "",
+      "location": "",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://citris-uc.org/research-internship-future-of-insurance-with-ai-agents/",
+      "match_reasons": [
+        "AI agent research aligns with candidate's LLM and agentic AI skills",
+        "Internship level appropriate",
+        "Opportunity to work on real-time insurance analytics"
+      ],
+      "concerns": [
+        "Insurance domain may need domain-specific knowledge"
+      ],
+      "recommended_angle": "Showcase your LLM and agentic AI experience, and explain how you can contribute to AI agents in insurance.",
+      "source_url": "https://citris-uc.org/research-internship-future-of-insurance-with-ai-agents/",
+      "platform": "unknown"
+    },
+    {
+      "id": 4,
+      "score": 7,
+      "tier": "GOOD FITS",
+      "title": "Handshake AI Research Intern, Summer 2026 - Handshake | Built In San Francisco",
+      "company": "",
+      "location": "",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://www.builtinsf.com/job/handshake-ai-research-intern-summer-2026/7292516",
+      "match_reasons": [
+        "AI research internship aligns with candidate's AI and computer vision skill set",
+        "Internship level matches",
+        "Potential remote or hybrid work in SF"
+      ],
+      "concerns": [
+        "Remote/hybrid policy unclear; candidate may need to relocate to SF"
+      ],
+      "recommended_angle": "Mention your AI research background and willingness to relocate or work remotely for the SF internship.",
+      "source_url": "https://www.builtinsf.com/job/handshake-ai-research-intern-summer-2026/7292516",
+      "platform": "unknown"
+    },
+    {
+      "id": 5,
+      "score": 7,
+      "tier": "GOOD FITS",
+      "title": "Max Planck Summer Internship 2026",
+      "company": "",
+      "location": "",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://opportunities.ohubet.com/opportunities/max-planck-summer-internship-2026",
+      "match_reasons": [
+        "Max Planck research internship offers high-quality research environment for AI",
+        "Internship level suitable",
+        "Opportunity to work with advanced AI tools"
+      ],
+      "concerns": [
+        "Onsite location in Germany; relocation required"
+      ],
+      "recommended_angle": "Stress your research experience and interest in Max Planck's AI initiatives, and discuss your NVIDIA GPU expertise.",
+      "source_url": "https://opportunities.ohubet.com/opportunities/max-planck-summer-internship-2026",
+      "platform": "unknown"
+    },
+    {
+      "id": 6,
+      "score": 7,
+      "tier": "GOOD FITS",
+      "title": "2026 Undergraduate Summer Research Internship - Minority Serving-Cyberinfrastructure Consortium",
+      "company": "",
+      "location": "",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://ms-cc.org/undergraduate-summer-research-internship-2026/",
+      "match_reasons": [
+        "Cyberinfrastructure research aligns with candidate's data ops and model ops skills",
+        "Internship level fits",
+        "Focus on data-intensive education"
+      ],
+      "concerns": [
+        "May require collaboration with HBCUs; candidate may need to adapt"
+      ],
+      "recommended_angle": "Outline your data ops and model ops skills, and how they can support the consortium's data-intensive projects.",
+      "source_url": "https://ms-cc.org/undergraduate-summer-research-internship-2026/",
+      "platform": "unknown"
+    },
+    {
+      "id": 9,
+      "score": 7,
+      "tier": "GOOD FITS",
+      "title": "Fulbright Canada-Mitacs Globalink Research Internship Program | Fulbright Canada",
+      "company": "",
+      "location": "",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://www.fulbright.ca/programs/undergraduate-students/fulbright-canada-mitacs-globalink-program",
+      "match_reasons": [
+        "Fulbright Canada Mitacs Globalink offers international research exposure",
+        "Internship level matches",
+        "Opportunity to apply AI and computer vision in Canadian context"
+      ],
+      "concerns": [
+        "International relocation required; visa considerations"
+      ],
+      "recommended_angle": "Emphasize your international experience and AI skills, and discuss your readiness to relocate to Canada.",
+      "source_url": "https://www.fulbright.ca/programs/undergraduate-students/fulbright-canada-mitacs-globalink-program",
+      "platform": "unknown"
+    },
+    {
+      "id": 10,
+      "score": 7,
+      "tier": "GOOD FITS",
+      "title": "MITACS Globalink Internship 2027 in Canada (Fully Funded)",
+      "company": "",
+      "location": "",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://opportunitiescorners.com/mitacs-globalink-internship-2027-in-canada-fully-funded/",
+      "match_reasons": [
+        "MITACS Globalink offers fully funded research internship in Canada",
+        "Internship level fits",
+        "Opportunity to work on AI projects"
+      ],
+      "concerns": [
+        "International relocation required; visa considerations"
+      ],
+      "recommended_angle": "Highlight your AI expertise and interest in Canadian research opportunities, and mention your readiness for relocation.",
+      "source_url": "https://opportunitiescorners.com/mitacs-globalink-internship-2027-in-canada-fully-funded/",
+      "platform": "unknown"
+    },
+    {
+      "id": 10,
+      "score": 6,
+      "tier": "GOOD FITS",
+      "title": "Software & AI Adoption Engineering Intern - Job Detail",
+      "company": "",
+      "location": "",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://jobs.siemens.com/en_US/externaljobs/JobDetail/515651",
+      "match_reasons": [
+        "FastAPI and Streamlit experience aligns with internship requirements",
+        "Internship level matches your experience",
+        "Strong engineering culture at Siemens"
+      ],
+      "concerns": [],
+      "recommended_angle": "Highlight your API development and UI prototyping skills, and mention any experience with industrial or enterprise systems.",
+      "source_url": "https://jobs.siemens.com/en_US/externaljobs/JobDetail/515651",
+      "platform": "unknown"
+    },
+    {
+      "id": 52,
+      "score": 6,
+      "tier": "GOOD FITS",
+      "title": "Internship, Charging Data Modeling, Machine Learning",
+      "company": "Unknown",
+      "location": "Unknown",
+      "remote_policy": "Unknown",
+      "salary": "Unknown",
+      "apply_url": "https://www.indeed.com/viewjob?jk=aa20355d6558fb75",
+      "match_reasons": [
+        "Internship with ML and data modeling focus",
+        "Start date aligns with academic calendar"
+      ],
+      "concerns": [
+        "Remote policy not specified",
+        "Start date in September may limit early engagement"
+      ],
+      "recommended_angle": "Emphasize data modeling experience, ML pipeline development, and ability to hit the ground running.",
+      "source_url": "https://www.indeed.com/viewjob?jk=aa20355d6558fb75",
+      "platform": "unknown"
+    },
+    {
+      "id": 6,
+      "score": 5,
+      "tier": "GOOD FITS",
+      "title": "Yotta Labs hiring Research Engineer Intern - AI Systems",
+      "company": "",
+      "location": "",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://ca.linkedin.com/jobs/view/research-engineer-intern-ai-systems-at-yotta-labs-4448106696",
+      "match_reasons": [
+        "Research engineer AI internship matches your AI and inference expertise",
+        "Internship level fits your current experience",
+        "Job posted recently (<2 weeks)"
+      ],
+      "concerns": [],
+      "recommended_angle": "Show your research projects, especially on inference or AI systems, and emphasize your ability to work in a startup environment.",
+      "source_url": "https://ca.linkedin.com/jobs/view/research-engineer-intern-ai-systems-at-yotta-labs-4448106696",
+      "platform": "unknown"
+    },
+    {
+      "id": 1,
+      "score": 5,
+      "tier": "GOOD FITS",
+      "title": "Final Year Internship / AI Engineer / Data - Job Offer at Talan - jobs.ch",
+      "company": "",
+      "location": "",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://www.jobs.ch/en/vacancies/detail/11e7172b-2d9a-4fdc-92d5-faef4fa6f866/",
+      "match_reasons": [
+        "Strong Python requirement matches candidate's core skill",
+        "Experience with Git and CI/CD aligns with job expectations",
+        "Internship level suitable for candidate's seniority"
+      ],
+      "concerns": [
+        "Limited information on location and remote policy; candidate may need clarification"
+      ],
+      "recommended_angle": "Emphasize your strong Python, Git, and CI/CD experience, and express enthusiasm for AI projects at Talan.",
+      "source_url": "https://www.jobs.ch/en/vacancies/detail/11e7172b-2d9a-4fdc-92d5-faef4fa6f866/",
+      "platform": "unknown"
+    },
+    {
+      "id": 22,
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "SAINT LAURENT Data Scientist Intern",
+      "company": "Saint Laurent",
+      "location": "Paris, France",
+      "remote_policy": "onsite",
+      "salary": "",
+      "apply_url": "https://www.kering.com/en/talent/job-offers/europe/saint-laurent-data-scientist-intern/",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 7/10 (GOOD FITS) vs 4/10 (WORTH EXPLORING) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Highlight your Python ML projects and explain how they can be applied to fashion data. Emphasize your internship experience and adaptability.",
+      "source_url": "https://www.kering.com/en/talent/job-offers/europe/saint-laurent-data-scientist-intern/",
+      "platform": "unknown",
+      "_pass_a": {
+        "score": 7,
+        "tier": "GOOD FITS"
+      },
+      "_pass_b": {
+        "score": 4,
+        "tier": "WORTH EXPLORING"
+      }
+    },
+    {
+      "id": 2,
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "Together AI hiring Research Intern, Inference (Fall 2026)",
+      "company": "",
+      "location": "",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://www.linkedin.com/jobs/view/research-intern-inference-fall-2026-at-together-ai-4426999957",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 4/10 (WORTH EXPLORING) vs 1/10 (SKIP) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Show your inference projects and any CUDA experience. Address relocation willingness if applicable.",
+      "source_url": "https://www.linkedin.com/jobs/view/research-intern-inference-fall-2026-at-together-ai-4426999957",
+      "platform": "unknown",
+      "_pass_a": {
+        "score": 4,
+        "tier": "WORTH EXPLORING"
+      },
+      "_pass_b": {
+        "score": 1,
+        "tier": "SKIP"
+      }
+    },
+    {
+      "id": 5,
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "🚨 GSK AI Robotics Data Internship Belgium 2026",
+      "company": "",
+      "location": "",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://www.instagram.com/reel/DYwcqu_CM4m/",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 3/10 (WORTH EXPLORING) vs 2/10 (SKIP) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Highlight your robotics or AI projects and willingness to relocate or work remotely if possible.",
+      "source_url": "https://www.instagram.com/reel/DYwcqu_CM4m/",
+      "platform": "unknown",
+      "_pass_a": {
+        "score": 3,
+        "tier": "WORTH EXPLORING"
+      },
+      "_pass_b": {
+        "score": 2,
+        "tier": "SKIP"
+      }
+    },
+    {
+      "id": 11,
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "Machine Learning Engineer Intern (TikTok-Data-Search ...",
+      "company": "TikTok",
+      "location": "San Jose, CA",
+      "remote_policy": "onsite",
+      "salary": "",
+      "apply_url": "https://www.indeed.com/viewjob?jk=782e218b5fc01e75",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 5/10 (GOOD FITS) vs 9/10 (TOP PICKS) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Highlight remote work experience and willingness to travel; emphasize ML project portfolio",
+      "source_url": "https://www.indeed.com/viewjob?jk=782e218b5fc01e75",
+      "platform": "unknown",
+      "_pass_a": {
+        "score": 5,
+        "tier": "GOOD FITS"
+      },
+      "_pass_b": {
+        "score": 9,
+        "tier": "TOP PICKS"
+      }
+    },
+    {
+      "id": 17,
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "Intern, Data & AI (Data Engineering) (Off-cycle Jan-Jun 2026)",
+      "company": "Capitaland",
+      "location": "Singapore",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://sg.linkedin.com/jobs/view/intern-data-ai-data-engineering-off-cycle-jan-jun-2026-at-capitaland-4296176284",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 4/10 (WORTH EXPLORING) vs 6/10 (GOOD FITS) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Highlight ability to deliver insights quickly; mention any data projects",
+      "source_url": "https://sg.linkedin.com/jobs/view/intern-data-ai-data-engineering-off-cycle-jan-jun-2026-at-capitaland-4296176284",
+      "platform": "unknown",
+      "_pass_a": {
+        "score": 4,
+        "tier": "WORTH EXPLORING"
+      },
+      "_pass_b": {
+        "score": 6,
+        "tier": "GOOD FITS"
+      }
+    },
+    {
+      "id": 18,
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "Fall 2026 AI Software Engineering Intern",
+      "company": "The Nuclear Company",
+      "location": "United States",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://www.linkedin.com/jobs/view/fall-2026-ai-software-engineering-intern-at-the-nuclear-company-4450725954",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 6/10 (GOOD FITS) vs 8/10 (TOP PICKS) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Show portfolio of AI projects; emphasize adaptability",
+      "source_url": "https://www.linkedin.com/jobs/view/fall-2026-ai-software-engineering-intern-at-the-nuclear-company-4450725954",
+      "platform": "unknown",
+      "_pass_a": {
+        "score": 6,
+        "tier": "GOOD FITS"
+      },
+      "_pass_b": {
+        "score": 8,
+        "tier": "TOP PICKS"
+      }
+    },
+    {
+      "id": 23,
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "GM R&D AI/ML PhD Intern Fall 2026",
+      "company": "General Motors",
+      "location": "Mountain View, CA",
+      "remote_policy": "onsite",
+      "salary": "",
+      "apply_url": "https://www.instagram.com/p/DZiIdEKE-0T/",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 7/10 (GOOD FITS) vs 3/10 (WORTH EXPLORING) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Show your research experience and clarify that you are pursuing a PhD soon. Emphasize your ability to contribute to AI research.",
+      "source_url": "https://www.instagram.com/p/DZiIdEKE-0T/",
+      "platform": "unknown",
+      "_pass_a": {
+        "score": 7,
+        "tier": "GOOD FITS"
+      },
+      "_pass_b": {
+        "score": 3,
+        "tier": "WORTH EXPLORING"
+      }
+    },
+    {
+      "id": 26,
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "Machine Learning Intern/Co-op (Winter 2027)",
+      "company": "Cohere",
+      "location": "San Francisco, CA",
+      "remote_policy": "remote",
+      "salary": "",
+      "apply_url": "https://ca.linkedin.com/jobs/view/machine-learning-intern-co-op-winter-2027-at-cohere-4414190535",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 8/10 (TOP PICKS) vs 5/10 (GOOD FITS) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Emphasize your open-source contributions and ability to work remotely. Highlight any experience with large language models.",
+      "source_url": "https://ca.linkedin.com/jobs/view/machine-learning-intern-co-op-winter-2027-at-cohere-4414190535",
+      "platform": "unknown",
+      "_pass_a": {
+        "score": 8,
+        "tier": "TOP PICKS"
+      },
+      "_pass_b": {
+        "score": 5,
+        "tier": "GOOD FITS"
+      }
+    },
+    {
+      "id": 29,
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "Meta AI Research Internship Applications Open",
+      "company": "Meta",
+      "location": "Paris, France",
+      "remote_policy": "remote",
+      "salary": "",
+      "apply_url": "https://www.facebook.com/61563002085275/posts/meta-ai-research-internship-applications-open-the-meta-ai-research-internship-pr/122222606996433402/",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 8/10 (TOP PICKS) vs 4/10 (WORTH EXPLORING) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Highlight your research projects and any publications or conference presentations.",
+      "source_url": "https://www.facebook.com/61563002085275/posts/meta-ai-research-internship-applications-open-the-meta-ai-research-internship-pr/122222606996433402/",
+      "platform": "unknown",
+      "_pass_a": {
+        "score": 8,
+        "tier": "TOP PICKS"
+      },
+      "_pass_b": {
+        "score": 4,
+        "tier": "WORTH EXPLORING"
+      }
+    },
+    {
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "27 Machine learning intern jobs in Munich, Bavaria",
+      "company": "",
+      "location": "Munich, Bavaria, Germany",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 6/10 (GOOD FITS) vs 8/10 (TOP PICKS) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Highlight your experience with YOLOv8 and OpenCV, and express willingness to relocate or work onsite.",
+      "source_url": "https://www.glassdoor.com/Job/munich-machine-learning-intern-jobs-SRCH_IL.0,6_IC4990924_KO7,30.htm",
+      "platform": "unknown",
+      "id": 33,
+      "_pass_a": {
+        "score": 6,
+        "tier": "GOOD FITS"
+      },
+      "_pass_b": {
+        "score": 8,
+        "tier": "TOP PICKS"
+      }
+    },
+    {
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "AI Research Intern - Rotterdam",
+      "company": "Bynder Labs",
+      "location": "Rotterdam, Netherlands",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 3/10 (WORTH EXPLORING) vs 1/10 (SKIP) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Highlight your research projects and willingness to relocate.",
+      "source_url": "https://careers.bynder.com/openings/f80ec6d0-ai-research-intern-rotterdam/",
+      "platform": "unknown",
+      "id": 42,
+      "_pass_a": {
+        "score": 3,
+        "tier": "WORTH EXPLORING"
+      },
+      "_pass_b": {
+        "score": 1,
+        "tier": "SKIP"
+      }
+    },
+    {
+      "id": 45,
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "AI Engineer (Stage 6 mois) – Stage de fin d’études",
+      "company": "Station F",
+      "location": "Paris, France",
+      "remote_policy": "Onsite",
+      "salary": "Unknown",
+      "apply_url": "https://fr.linkedin.com/jobs/view/ai-engineer-h-f-stage-6-mois-stage-de-fin-d%E2%80%99%C3%A9tudes-at-station-f-4450508821",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 8/10 (TOP PICKS) vs 6/10 (GOOD FITS) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Emphasize hands‑on AI projects, rapid prototyping, and readiness to relocate to Paris.",
+      "source_url": "https://fr.linkedin.com/jobs/view/ai-engineer-h-f-stage-6-mois-stage-de-fin-d%E2%80%99%C3%A9tudes-at-station-f-4450508821",
+      "platform": "unknown",
+      "_pass_a": {
+        "score": 8,
+        "tier": "TOP PICKS"
+      },
+      "_pass_b": {
+        "score": 6,
+        "tier": "GOOD FITS"
+      }
+    },
+    {
+      "id": 50,
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "Offres de stage de Data Analyst – L'Oréal",
+      "company": "L'Oréal Groupe",
+      "location": "France",
+      "remote_policy": "Unknown",
+      "salary": "1700€/month",
+      "apply_url": "https://www.welcometothejungle.com/fr/pages/stage-data-analyst",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 8/10 (TOP PICKS) vs 6/10 (GOOD FITS) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Show data pipeline projects, ML model deployment, and ability to translate analytics into actionable insights.",
+      "source_url": "https://www.welcometothejungle.com/fr/pages/stage-data-analyst",
+      "platform": "unknown",
+      "_pass_a": {
+        "score": 8,
+        "tier": "TOP PICKS"
+      },
+      "_pass_b": {
+        "score": 6,
+        "tier": "GOOD FITS"
+      }
+    },
+    {
+      "id": 36,
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "Machine Learning Engineer Intern",
+      "company": "B2H",
+      "location": "Tunis, Tunisia",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://www.linkedin.com/jobs/view/4415813753/",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 7/10 (GOOD FITS) vs 8/10 (TOP PICKS) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Highlight your end‑to‑end ML pipeline experience and adaptability to new environments.",
+      "source_url": "https://www.linkedin.com/jobs/view/4415813753/",
+      "platform": "linkedin",
+      "_pass_a": {
+        "score": 7,
+        "tier": "GOOD FITS"
+      },
+      "_pass_b": {
+        "score": 8,
+        "tier": "TOP PICKS"
+      }
+    },
+    {
+      "id": 55,
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "Snowflake hiring Research Intern (AI) - 2026 in Warsaw, ...",
+      "company": "",
+      "location": "",
+      "remote_policy": "on-site",
+      "salary": "",
+      "apply_url": "",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 2/10 (SKIP) vs 8/10 (TOP PICKS) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Emphasize academic projects and strong interest in AI research.",
+      "source_url": "https://www.linkedin.com/jobs/view/4339029335",
+      "platform": "unknown",
+      "_pass_a": {
+        "score": 2,
+        "tier": "SKIP"
+      },
+      "_pass_b": {
+        "score": 8,
+        "tier": "TOP PICKS"
+      }
+    },
+    {
+      "id": 2,
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "Stage fin d'études - Ingénieur Data & Web - Kyu Lab",
+      "company": "Kyu Lab",
+      "location": "",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://bebee.com/ke/jobs/stage-fin-detudes-ingenieur-data-web-kyu-lab-stage--techmap_ke_4440473314",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 6/10 (GOOD FITS) vs 4/10 (WORTH EXPLORING) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Highlight internship experience, showcase JS/SQL projects and explain how you plan to contribute to Kyu Lab’s data initiatives.",
+      "source_url": "https://bebee.com/ke/jobs/stage-fin-detudes-ingenieur-data-web-kyu-lab-stage--techmap_ke_4440473314",
+      "platform": "unknown",
+      "_pass_a": {
+        "score": 6,
+        "tier": "GOOD FITS"
+      },
+      "_pass_b": {
+        "score": 4,
+        "tier": "WORTH EXPLORING"
+      }
+    },
+    {
+      "id": 33,
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "AI Intern",
+      "company": "First Solar",
+      "location": "Toledo, OH",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://www.linkedin.com/jobs/view/ai-intern-fall-2026-at-first-solar-4439800397",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 7/10 (GOOD FITS) vs 2/10 (SKIP) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Highlight your AI projects, willingness to relocate, and enthusiasm for contributing to renewable energy solutions.",
+      "source_url": "https://www.linkedin.com/jobs/view/ai-intern-fall-2026-at-first-solar-4439800397",
+      "platform": "linkedin",
+      "_pass_a": {
+        "score": 7,
+        "tier": "GOOD FITS"
+      },
+      "_pass_b": {
+        "score": 2,
+        "tier": "SKIP"
+      }
+    },
+    {
+      "id": 34,
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "Computer Vision Engineer Intern",
+      "company": "",
+      "location": "Amsterdam, Netherlands",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://www.linkedin.com/posts/naresh-jung-shahi-0b2543223_certificatecvc-activity-7464479952000888832-qAxQ",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 8/10 (TOP PICKS) vs 6/10 (GOOD FITS) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Emphasize your CV framework expertise and any open‑source contributions; mention flexibility for on‑site or hybrid work.",
+      "source_url": "https://www.linkedin.com/posts/naresh-jung-shahi-0b2543223_certificatecvc-activity-7464479952000888832-qAxQ",
+      "platform": "linkedin",
+      "_pass_a": {
+        "score": 8,
+        "tier": "TOP PICKS"
+      },
+      "_pass_b": {
+        "score": 6,
+        "tier": "GOOD FITS"
+      }
+    },
+    {
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "Research Intern (3D Vision and Generation, Self-Driving) – Applied Intuition – Internship in Sunnyvale",
+      "company": "Applied Intuition",
+      "location": "Sunnyvale, CA",
+      "remote_policy": "onsite",
+      "salary": "",
+      "apply_url": "https://www.welcometothejungle.com/en/companies/applied-intuition/jobs/research-intern-3d-vision-and-generation-self-driving_sunnyvale_trmsdbei",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 3.5/10 (WORTH EXPLORING) vs 7/10 (GOOD FITS) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Highlight any 3D vision projects or relevant coursework, emphasize rapid learning and adaptability.",
+      "source_url": "https://www.welcometothejungle.com/en/companies/applied-intuition/jobs/research-intern-3d-vision-and-generation-self-driving_sunnyvale_trmsdbei",
+      "platform": "welcometothejungle",
+      "id": 1,
+      "_pass_a": {
+        "score": 3.5,
+        "tier": "WORTH EXPLORING"
+      },
+      "_pass_b": {
+        "score": 7,
+        "tier": "GOOD FITS"
+      }
+    },
+    {
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "Chip Simulation Software Intern – Etched – Internship in San Jose",
+      "company": "Etched",
+      "location": "San Jose, CA",
+      "remote_policy": "onsite",
+      "salary": "",
+      "apply_url": "https://www.welcometothejungle.com/en/companies/etched/jobs/chipsim-intern-12-week-internship_san-jose_y3cqp6hz",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 2.5/10 (SKIP) vs 6/10 (GOOD FITS) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Show willingness to learn Rust and any related simulation experience, emphasize C/C++ proficiency.",
+      "source_url": "https://www.welcometothejungle.com/en/companies/etched/jobs/chipsim-intern-12-week-internship_san-jose_y3cqp6hz",
+      "platform": "welcometothejungle",
+      "id": 2,
+      "_pass_a": {
+        "score": 2.5,
+        "tier": "SKIP"
+      },
+      "_pass_b": {
+        "score": 6,
+        "tier": "GOOD FITS"
+      }
+    },
+    {
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "Software Engineer Intern (Summer 2027) – Roblox – Internship in San Mateo, CA",
+      "company": "Roblox",
+      "location": "San Mateo, CA",
+      "remote_policy": "unknown",
+      "salary": "",
+      "apply_url": "https://www.welcometothejungle.com/en/companies/roblox/jobs/software-engineer-intern-summer-2027_san-mateo-ca_yu3ks3xx",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 4.5/10 (WORTH EXPLORING) vs 7/10 (GOOD FITS) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Emphasize any game dev or interactive projects, highlight adaptability to new domains.",
+      "source_url": "https://www.welcometothejungle.com/en/companies/roblox/jobs/software-engineer-intern-summer-2027_san-mateo-ca_yu3ks3xx",
+      "platform": "welcometothejungle",
+      "id": 3,
+      "_pass_a": {
+        "score": 4.5,
+        "tier": "WORTH EXPLORING"
+      },
+      "_pass_b": {
+        "score": 7,
+        "tier": "GOOD FITS"
+      }
+    },
+    {
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "Data Science Intern (September 2026 Start) - HawkCell - Stage à Lyon",
+      "company": "HawkCell",
+      "location": "Lyon, France",
+      "remote_policy": "unknown",
+      "salary": "",
+      "apply_url": "https://www.welcometothejungle.com/fr/companies/hawkcell/jobs/data-science-intern-september-2026-start_lyon",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 3.5/10 (WORTH EXPLORING) vs 6/10 (GOOD FITS) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Show any data science projects, emphasize ability to work with large datasets.",
+      "source_url": "https://www.welcometothejungle.com/fr/companies/hawkcell/jobs/data-science-intern-september-2026-start_lyon",
+      "platform": "welcometothejungle",
+      "id": 4,
+      "_pass_a": {
+        "score": 3.5,
+        "tier": "WORTH EXPLORING"
+      },
+      "_pass_b": {
+        "score": 6,
+        "tier": "GOOD FITS"
+      }
+    },
+    {
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "IBM Internship 2027–2028: Deadlines & How to Apply",
+      "company": "IBM",
+      "location": "",
+      "remote_policy": "unknown",
+      "salary": "",
+      "apply_url": "https://www.extern.com/post/ibm-internship-guide",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 3.5/10 (WORTH EXPLORING) vs 10/10 (TOP PICKS) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Use this guide to identify actual IBM internship listings and tailor application.",
+      "source_url": "https://www.extern.com/post/ibm-internship-guide",
+      "platform": "extern",
+      "id": 5,
+      "_pass_a": {
+        "score": 3.5,
+        "tier": "WORTH EXPLORING"
+      },
+      "_pass_b": {
+        "score": 10,
+        "tier": "TOP PICKS"
+      }
+    },
+    {
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "Flexible Data Science Intern Jobs – Apply Today to Work From Home in Remote (August 18, 2026) | Indeed",
+      "company": "",
+      "location": "Remote",
+      "remote_policy": "remote",
+      "salary": "",
+      "apply_url": "https://www.indeed.com/q-data-science-intern-l-remote-jobs.html",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 5.0/10 (GOOD FITS) vs 9/10 (TOP PICKS) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Highlight any remote data science projects and proficiency with cloud or data pipelines.",
+      "source_url": "https://www.indeed.com/q-data-science-intern-l-remote-jobs.html",
+      "platform": "indeed",
+      "id": 6,
+      "_pass_a": {
+        "score": 5.0,
+        "tier": "GOOD FITS"
+      },
+      "_pass_b": {
+        "score": 9,
+        "tier": "TOP PICKS"
+      }
+    },
+    {
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "AI Engineer Intern Job Details | Festo SE & Co. KG @ Festo | Jobright.ai",
+      "company": "Festo",
+      "location": "",
+      "remote_policy": "unknown",
+      "salary": "",
+      "apply_url": "https://jobright.ai/jobs/info/6a8293cb379c304e892f2e18",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 4.5/10 (WORTH EXPLORING) vs 7/10 (GOOD FITS) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Emphasize adaptability and any experience with industrial or embedded systems.",
+      "source_url": "https://jobright.ai/jobs/info/6a8293cb379c304e892f2e18",
+      "platform": "jobright.ai",
+      "id": 7,
+      "_pass_a": {
+        "score": 4.5,
+        "tier": "WORTH EXPLORING"
+      },
+      "_pass_b": {
+        "score": 7,
+        "tier": "GOOD FITS"
+      }
+    },
+    {
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "Applied AI Engineer Work From Home Internship at Across The Globe (ATG)",
+      "company": "Across The Globe (ATG)",
+      "location": "Remote",
+      "remote_policy": "remote",
+      "salary": "",
+      "apply_url": "https://internshala.com/internship/detail/work-from-home-applied-ai-engineer-internship-at-across-the-globe-atg1785308345",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 5.0/10 (GOOD FITS) vs 9/10 (TOP PICKS) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Show proficiency with popular AI frameworks and remote collaboration tools.",
+      "source_url": "https://internshala.com/internship/detail/work-from-home-applied-ai-engineer-internship-at-across-the-globe-atg1785308345",
+      "platform": "internshala",
+      "id": 8,
+      "_pass_a": {
+        "score": 5.0,
+        "tier": "GOOD FITS"
+      },
+      "_pass_b": {
+        "score": 9,
+        "tier": "TOP PICKS"
+      }
+    },
+    {
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "2026 AI Engineer Intern, Long/Short Equities - Point72 | Built In NYC",
+      "company": "Point72",
+      "location": "NYC, NY",
+      "remote_policy": "remote",
+      "salary": "",
+      "apply_url": "https://www.builtinnyc.com/job/2026-ai-engineer-intern-long-short-equities/9005746",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 6.0/10 (GOOD FITS) vs 9/10 (TOP PICKS) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Emphasize any quantitative or financial modeling projects, and ability to learn domain quickly.",
+      "source_url": "https://www.builtinnyc.com/job/2026-ai-engineer-intern-long-short-equities/9005746",
+      "platform": "builtinnyc",
+      "id": 10,
+      "_pass_a": {
+        "score": 6.0,
+        "tier": "GOOD FITS"
+      },
+      "_pass_b": {
+        "score": 9,
+        "tier": "TOP PICKS"
+      }
+    },
+    {
+      "id": 11,
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "Stage Mlops",
+      "company": "",
+      "location": "",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://fr.indeed.com/q-stage-mlops-emplois.html",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 4/10 (WORTH EXPLORING) vs 6/10 (GOOD FITS) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Emphasize your Python expertise and any MLOps projects; express eagerness to learn and contribute.",
+      "source_url": "https://fr.indeed.com/q-stage-mlops-emplois.html",
+      "platform": "unknown",
+      "_pass_a": {
+        "score": 4,
+        "tier": "WORTH EXPLORING"
+      },
+      "_pass_b": {
+        "score": 6,
+        "tier": "GOOD FITS"
+      }
+    },
+    {
+      "id": 7,
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "Fully Funded NVIDIA Research Internship Programme 2027: AI and Technology Opportunities - Opportunities Feed",
+      "company": "",
+      "location": "",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://opportunitiesfeed.com/2026/06/20/nvidia-research-internship/",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 8/10 (TOP PICKS) vs 6/10 (GOOD FITS) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Detail your NVIDIA Jetson, TensorRT, and DeepStream experience, and express eagerness to contribute to NVIDIA's research.",
+      "source_url": "https://opportunitiesfeed.com/2026/06/20/nvidia-research-internship/",
+      "platform": "unknown",
+      "_pass_a": {
+        "score": 8,
+        "tier": "TOP PICKS"
+      },
+      "_pass_b": {
+        "score": 6,
+        "tier": "GOOD FITS"
+      }
+    },
+    {
+      "id": 8,
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "Thinking Machines Lab Internship 2027–2028: What We Know & How to Get In |  Extern",
+      "company": "",
+      "location": "",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://www.extern.com/post/thinking-machines-lab-internship-guide",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 3/10 (WORTH EXPLORING) vs 1/10 (SKIP) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Explain your research interests and how they align with Thinking Machines Lab, but note your current level.",
+      "source_url": "https://www.extern.com/post/thinking-machines-lab-internship-guide",
+      "platform": "unknown",
+      "_pass_a": {
+        "score": 3,
+        "tier": "WORTH EXPLORING"
+      },
+      "_pass_b": {
+        "score": 1,
+        "tier": "SKIP"
+      }
+    },
+    {
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "Mitacs Globalink Research Internship 2027 in Canada | Fully Funded",
+      "company": "Mitacs",
+      "location": "Canada (onsite)",
+      "remote_policy": "onsite",
+      "salary": "Fully funded stipend (approx. CAD 20,000-30,000)",
+      "apply_url": "https://scholarshipscorner.website/mitacs-globalink-research-internship/",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 10/10 (TOP PICKS) vs 4/10 (WORTH EXPLORING) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Highlight your AI and CV projects, emphasize research experience and adaptability to new environments.",
+      "source_url": "https://scholarshipscorner.website/mitacs-globalink-research-internship/",
+      "platform": "unknown",
+      "id": 11,
+      "_pass_a": {
+        "score": 10,
+        "tier": "TOP PICKS"
+      },
+      "_pass_b": {
+        "score": 4,
+        "tier": "WORTH EXPLORING"
+      }
+    },
+    {
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "2027 Mitacs Globalink Research Internship (GRI) | Research at UCalgary | University of Calgary",
+      "company": "University of Calgary",
+      "location": "Calgary, Canada (onsite)",
+      "remote_policy": "onsite",
+      "salary": "Fully funded stipend (approx. CAD 20,000-30,000)",
+      "apply_url": "https://research.ucalgary.ca/opportunity/2026-2027-mitacs-globalink-research-internship-gri",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 10/10 (TOP PICKS) vs 4/10 (WORTH EXPLORING) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Emphasize your AI research experience, CV projects, and willingness to relocate for research.",
+      "source_url": "https://research.ucalgary.ca/opportunity/2026-2027-mitacs-globalink-research-internship-gri",
+      "platform": "unknown",
+      "id": 12,
+      "_pass_a": {
+        "score": 10,
+        "tier": "TOP PICKS"
+      },
+      "_pass_b": {
+        "score": 4,
+        "tier": "WORTH EXPLORING"
+      }
+    },
+    {
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "Working Student Product Management Energy Products & Tariffs (m/f/d)",
+      "company": "1KOMMA5°",
+      "location": "Berlin, Germany",
+      "remote_policy": "onsite",
+      "salary": "Not specified",
+      "apply_url": "https://www.arbeitnow.com/jobs/companies/1komma5/working-student-product-management-energy-products-tariffs-berlin-302647",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 5/10 (GOOD FITS) vs 1.5/10 (SKIP) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Highlight your AI and CV expertise, and demonstrate how it can add value to product strategy and AI‑driven energy solutions.",
+      "source_url": "https://www.arbeitnow.com/jobs/companies/1komma5/working-student-product-management-energy-products-tariffs-berlin-302647",
+      "platform": "arbeitnow",
+      "id": 13,
+      "_pass_a": {
+        "score": 5,
+        "tier": "GOOD FITS"
+      },
+      "_pass_b": {
+        "score": 1.5,
+        "tier": "SKIP"
+      }
+    },
+    {
+      "id": 3,
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "Product Engineer — Working Student",
+      "company": "sumup",
+      "location": "Berlin",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://www.arbeitnow.com/jobs/companies/sumup/product-engineer-working-student-berlin-301119",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 5/10 (GOOD FIT) vs 6/10 (GOOD FITS) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Emphasize your backend experience with FastAPI and distributed systems. Connect your microservices knowledge to their scalability goals.",
+      "source_url": "https://www.arbeitnow.com/jobs/companies/sumup/product-engineer-working-student-berlin-301119",
+      "platform": "arbeitnow",
+      "_pass_a": {
+        "score": 5,
+        "tier": "GOOD FIT"
+      },
+      "_pass_b": {
+        "score": 6,
+        "tier": "GOOD FITS"
+      }
+    },
+    {
+      "id": 5,
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "Product Engineer — Working Student",
+      "company": "SumUp",
+      "location": "Berlin, Germany",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://www.arbeitnow.com/jobs/companies/sumup/product-engineer-working-student-berlin-425538",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 6/10 (GOOD FIT) vs 6/10 (GOOD FITS) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Emphasize your full-stack backend experience and data-informed culture alignment. Connect your distributed systems knowledge to their scalability needs.",
+      "source_url": "https://www.arbeitnow.com/jobs/companies/sumup/product-engineer-working-student-berlin-425538",
+      "platform": "arbeitnow",
+      "_pass_a": {
+        "score": 6,
+        "tier": "GOOD FIT"
+      },
+      "_pass_b": {
+        "score": 6,
+        "tier": "GOOD FITS"
+      }
+    },
+    {
+      "id": 6,
+      "score": null,
+      "tier": "DISPUTED",
+      "title": "Working Student / IDP: Software Development (m/f/d)",
+      "company": "Blickfeld GmbH",
+      "location": "Munich",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://www.arbeitnow.com/jobs/companies/blickfeld-gmbh/working-student-idp-software-development-munich-418698",
+      "match_reasons": [],
+      "concerns": [
+        "Score disputed across two independent passes: 7/10 (TOP PICKS) vs 7/10 (GOOD FITS) — manual review recommended, not averaged or auto-resolved."
+      ],
+      "recommended_angle": "Highlight your computer vision expertise with OpenCV and YOLO models. Emphasize your experience with 3D data processing and real-time object detection systems.",
+      "source_url": "https://www.arbeitnow.com/jobs/companies/blickfeld-gmbh/working-student-idp-software-development-munich-418698",
+      "platform": "arbeitnow",
+      "_pass_a": {
+        "score": 7,
+        "tier": "TOP PICKS"
+      },
+      "_pass_b": {
+        "score": 7,
+        "tier": "GOOD FITS"
+      }
+    },
+    {
+      "score": 3,
+      "tier": "WORTH EXPLORING",
+      "title": "Stage d'été 2026 — AI Engineering (avec perspective PFE)",
+      "company": "CareersBang",
+      "location": "France",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "",
+      "match_reasons": [
+        "Internship in AI Engineering",
+        "Opportunity to continue as PFE"
+      ],
+      "concerns": [
+        "Posted >6 weeks, may be filled",
+        "Location unspecified"
+      ],
+      "recommended_angle": "Show enthusiasm for on-site work and highlight your CVYOLOv8 projects.",
+      "source_url": "https://hi-interns.com/internships/stage-dete-2026-ai-engineering-avec-perspective-pfe",
+      "platform": "unknown",
+      "id": 38
+    },
+    {
+      "id": 2,
+      "score": 3,
+      "tier": "WORTH EXPLORING",
+      "title": "Mitacs Globalink Research Internship (GRI) 2027 in Canada (Fully Funded)",
+      "company": "",
+      "location": "",
+      "remote_policy": "",
+      "salary": "",
+      "apply_url": "https://brightscholarship.com/mitacs-globalink-research-internship-2027/",
+      "match_reasons": [
+        "Research internship aligns with AI/ML interests",
+        "Fully funded opportunity in Canada"
+      ],
+      "concerns": [
+        "No specific skills or responsibilities listed in raw content",
+        "Vague company context unrelated to AI/ML"
+      ],
+      "recommended_angle": "Highlight your PyTorch/TensorFlow experience and computer vision projects. Emphasize adaptability for international research environments.",
+      "source_url": "https://brightscholarship.com/mitacs-globalink-research-internship-2027/",
+      "platform": "unknown"
+    }
+  ]
+}

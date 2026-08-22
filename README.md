@@ -114,7 +114,7 @@ tools/
   email_sender.py              # optional SendGrid email delivery
 prompts/scoring_agent.py     # the ranking prompt
 data/                         # local state — seen-jobs DB, CV analysis cache (gitignored)
-Ali_out/                      # generated reports (gitignored)
+report_output/                # generated reports (gitignored)
 tests/                        # real, runnable tests — no mocked-away load-bearing logic
 ```
 
