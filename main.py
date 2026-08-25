@@ -152,6 +152,19 @@ EU_LOCATIONS = os.getenv(
 # just delete this file.
 CV_ANALYSIS_CACHE = Path(os.getenv("CV_ANALYSIS_CACHE", "data/cv_analysis_cache.json"))
 
+# Candidate eligibility profile (2026-08-22) -- a CV document doesn't state
+# citizenship, work-authorization status, or availability dates, so these
+# can't be reliably extracted by the CV-analysis LLM step; they're supplied
+# directly instead. CV_ANALYSIS_CACHE (when present) already carries these
+# fields for the cached candidate. These env vars are only a fallback for a
+# fresh, non-cached LLM analysis, merged in by run_pipeline() -- see the
+# "eligibility" section of write_opportunities_report()'s ranking prompt for
+# how they're actually used (STRICT on country/visa, MODERATE on timing).
+CANDIDATE_CITIZENSHIP = os.getenv("CANDIDATE_CITIZENSHIP", "")
+CANDIDATE_WORK_AUTHORIZATION = os.getenv("CANDIDATE_WORK_AUTHORIZATION", "")
+CANDIDATE_AVAILABILITY_START = os.getenv("CANDIDATE_AVAILABILITY_START", "")
+CANDIDATE_AVAILABILITY_MONTHS = os.getenv("CANDIDATE_AVAILABILITY_MONTHS", "")
+
 # Apify (paid) source scoping — trimmed for cost, confirmed 2026-08-17:
 # Apify's Free plan has a hard $5/month cap with NO overage option (blocked
 # until next billing cycle if exceeded — not a pay-a-bit-more situation).
@@ -700,11 +713,85 @@ def _filter_internship_only(jobs: list[dict], seniority: str) -> list[dict]:
     return [j for j in jobs if _INTERN_TITLE_HINT_PATTERN.search(j.get("title", "") or "")]
 
 
+# ════════════════════════════════════════════════════════════════════════════
+#  DETERMINISTIC ELIGIBILITY PRE-FILTER (confirmed cases only)
+#
+#  Real feedback (2026-08-22): a merged report included postings like a US
+#  defense-contractor internship requiring ITAR/US-person status, and roles
+#  explicitly stating no visa sponsorship -- for a Tunisian candidate with
+#  no other citizenship/permit, these are not just "low fit", they are
+#  postings the candidate cannot actually apply to at all.
+#
+#  This catches only the UNAMBIGUOUS, explicitly-stated cases (high
+#  precision, deliberately low recall) -- the same "confirmed vs missed"
+#  tradeoff already accepted for Adzuna/Apify credential detection. It is
+#  NOT where the general "does this posting realistically work for a
+#  Tunisian candidate with no sponsorship" judgment happens -- that needs
+#  actual reasoning (country, whether it's a French stage/PFE posting via
+#  convention de stage, whether it's an internationally-oriented funded
+#  program, whether it's genuinely remote-anywhere) and is handled by the
+#  ranking LLM's eligibility instructions instead (see
+#  _build_ranking_prompt). This pre-filter exists to catch the clearest
+#  cases for free, before they ever reach the LLM, and to guarantee they
+#  never slip through regardless of the model's judgment quality that run.
+# ════════════════════════════════════════════════════════════════════════════
+
+_INELIGIBLE_CONFIRMED_PATTERN = re.compile(
+    r"\b("
+    r"u\.?s\.?\s*persons?\s*only"
+    r"|must\s+be\s+a\s+u\.?s\.?\s*citizen"
+    r"|u\.?s\.?\s*citizens?\s*(?:and|or)?\s*permanent\s+residents?\s+only"
+    r"|itar"
+    r"|export[- ]controlled"
+    r"|will\s+not\s+sponsor"
+    r"|does\s+not\s+sponsor"
+    r"|no\s+visa\s+sponsorship"
+    r"|without\s+sponsorship"
+    r"|cannot\s+sponsor"
+    r"|unable\s+to\s+sponsor"
+    r"|must\s+already\s+have\s+(?:the\s+)?right\s+to\s+work"
+    r")\b",
+    re.IGNORECASE,
+)
+
+
+def _eligibility_disqualified_match(title: str, raw_content: str) -> str | None:
+    """Returns the matched disqualifying phrase, or None.
+
+    Checks title AND description body -- this kind of language almost
+    always lives in the body ("must be a U.S. citizen due to the nature of
+    this position...") rather than the title.
+    """
+    text = f"{title or ''} {raw_content or ''}"
+    match = _INELIGIBLE_CONFIRMED_PATTERN.search(text)
+    return match.group(1) if match else None
+
+
 def _build_ranking_prompt(batch: list[dict], terms: dict) -> str:
     candidate = terms.get("candidate_name", "Candidate")
     seniority = terms.get("seniority_level", "")
     job_titles = terms.get("job_titles", [])
     tech_skills = terms.get("skills_technical", [])
+
+    # Only included when the candidate's eligibility facts are actually
+    # known (see CANDIDATE_* env vars / CV_ANALYSIS_CACHE) -- omitting the
+    # section entirely when unknown, rather than sending it with empty
+    # values, tells the LLM (per SCORING_SYSTEM_PROMPT's own instruction)
+    # to skip the eligibility check instead of inventing constraints.
+    eligibility_section = ""
+    if terms.get("citizenship") or terms.get("work_authorization"):
+        availability = terms.get("availability_start", "")
+        duration = terms.get("availability_duration_months", "")
+        availability_str = (
+            f"{availability} for ~{duration} months" if availability else "not specified"
+        )
+        eligibility_section = f"""
+CANDIDATE ELIGIBILITY:
+- Citizenship: {terms.get("citizenship", "not specified")}
+- Work authorization: {terms.get("work_authorization", "not specified")}
+- Availability: {availability_str} (soft constraint -- see ELIGIBILITY CHECK above)
+"""
+
     return f"""{SCORING_SYSTEM_PROMPT}
 
 CANDIDATE PROFILE:
@@ -712,7 +799,7 @@ CANDIDATE PROFILE:
 - Target roles: {", ".join(job_titles[:5])}
 - Key skills: {", ".join(tech_skills[:8])}
 - Full profile: {json.dumps(terms, ensure_ascii=False)[:1500]}
-
+{eligibility_section}
 OPPORTUNITIES TO RANK ({len(batch)} total):
 {json.dumps(batch, ensure_ascii=False, indent=2)}
 
@@ -1108,6 +1195,42 @@ def write_opportunities_report(
                 f"jobs excluded before ranking (senior/exec title match)"
             )
 
+    # ── Deterministic eligibility pre-filter (confirmed cases only) ───────
+    # Catches only unambiguous, explicitly-stated disqualifiers (ITAR/
+    # US-person/no-sponsorship language) -- the broader "can this candidate
+    # realistically apply given their citizenship/visa status" judgment
+    # needs actual reasoning and is handled by the ranking LLM instead (see
+    # _build_ranking_prompt's CANDIDATE ELIGIBILITY section).
+    pre_filter_ineligible: list[dict] = []
+    still_to_rank = []
+    for c in to_rank:
+        reason = _eligibility_disqualified_match(c.get("title", ""), c.get("raw_content", ""))
+        if reason:
+            print(
+                f"  [PRE-FILTER] Excluding {c.get('title', '')[:70]!r} "
+                f"(confirmed ineligible — matched: {reason!r}) | {c.get('source_url', '')}"
+            )
+            pre_filter_ineligible.append(
+                {
+                    **c,
+                    "score": None,
+                    "tier": "INELIGIBLE",
+                    "concerns": [
+                        f"Excluded by eligibility pre-filter — matched confirmed "
+                        f"disqualifying phrase {reason!r}, not LLM-scored."
+                    ],
+                }
+            )
+        else:
+            still_to_rank.append(c)
+    to_rank = still_to_rank
+    if pre_filter_ineligible:
+        print(
+            f"  [PRE-FILTER] {len(pre_filter_ineligible)}/{len(condensed)} "
+            f"jobs excluded before ranking (confirmed ineligible: ITAR/"
+            f"US-person/no-sponsorship language)"
+        )
+
     print(
         f"🤖 Ranking {len(to_rank)} opportunities via OpenRouter "
         f"(batches of {RANKING_BATCH_SIZE}, weighted scoring)...\n"
@@ -1141,7 +1264,7 @@ def write_opportunities_report(
 
     # Pre-filter exclusions never reach the normalize loop below (they were
     # never LLM output), so give them the same defaults directly.
-    for c in pre_filter_skipped:
+    for c in pre_filter_skipped + pre_filter_ineligible:
         c.setdefault("match_reasons", [])
         c.setdefault("recommended_angle", "")
         c.setdefault("apply_url", c.get("source_url", "#"))
@@ -1172,22 +1295,29 @@ def write_opportunities_report(
     # measured no-op, not a guessed simplification. (The old threshold also
     # needed special-case bypasses for UNRANKED/DISPUTED's score=None,
     # which are no longer needed now that tier is the only signal.)
-    ranked_valid = [r for r in ranked if r.get("tier") != "SKIP"]
+    ranked_valid = [r for r in ranked if r.get("tier") not in ("SKIP", "INELIGIBLE")]
     ranked_skipped = [r for r in ranked if r.get("tier") == "SKIP"]
     ranked_skipped = pre_filter_skipped + ranked_skipped
+    ranked_ineligible = [r for r in ranked if r.get("tier") == "INELIGIBLE"]
+    ranked_ineligible = pre_filter_ineligible + ranked_ineligible
     if ranked_skipped:
         print(f"   Excluded {len(ranked_skipped)} SKIP-tier jobs from report "
               f"({len(pre_filter_skipped)} by seniority pre-filter, "
               f"{len(ranked_skipped) - len(pre_filter_skipped)} by LLM)")
+    if ranked_ineligible:
+        print(f"   Excluded {len(ranked_ineligible)} INELIGIBLE jobs from report "
+              f"({len(pre_filter_ineligible)} by eligibility pre-filter, "
+              f"{len(ranked_ineligible) - len(pre_filter_ineligible)} by LLM)")
 
     # Every job in `condensed` must land in exactly one bucket: genuinely
-    # ranked, LLM-tagged SKIP, pre-filter SKIP, or UNRANKED. This is the same
-    # invariant _rank_opportunities_in_batches already asserts for `to_rank`
-    # alone -- this checks it holds end-to-end, across the pre-filter split.
-    assert len(ranked_valid) + len(ranked_skipped) == len(condensed), (
+    # ranked, LLM-tagged SKIP/INELIGIBLE, pre-filter SKIP/INELIGIBLE, or
+    # UNRANKED. This is the same invariant _rank_opportunities_in_batches
+    # already asserts for `to_rank` alone -- this checks it holds end-to-end,
+    # across the pre-filter split.
+    assert len(ranked_valid) + len(ranked_skipped) + len(ranked_ineligible) == len(condensed), (
         f"Pre-filter + ranking accounting mismatch: "
-        f"{len(ranked_valid)} valid + {len(ranked_skipped)} skipped != "
-        f"{len(condensed)} total condensed jobs."
+        f"{len(ranked_valid)} valid + {len(ranked_skipped)} skipped + "
+        f"{len(ranked_ineligible)} ineligible != {len(condensed)} total condensed jobs."
     )
 
     # ── Build output files ───────────────────────────────────────────────────
@@ -1196,8 +1326,8 @@ def write_opportunities_report(
     md_path = OUTPUT_DIR / f"opportunities_{slug}.md"
     json_path = OUTPUT_DIR / f"opportunities_{slug}.json"
 
-    def _tier_block(tier: str, emoji: str) -> str:
-        items = [r for r in ranked_valid if r.get("tier") == tier]
+    def _tier_block(tier: str, emoji: str, source_list: list[dict] | None = None) -> str:
+        items = [r for r in (source_list if source_list is not None else ranked_valid) if r.get("tier") == tier]
         if not items:
             return ""
         lines = [f"\n## {emoji} {tier} ({len(items)} found)\n"]
@@ -1261,7 +1391,7 @@ def write_opportunities_report(
         **Key skills:** {", ".join(tech_skills[:8])}
         **Total unique jobs found:** {opps.get("total_results", 0)}
         **Queries executed:** {opps.get("queries_executed", 0)}
-        **Jobs scored:** {len(ranked_valid)} (SKIP excluded: {len(ranked_skipped)})
+        **Jobs scored:** {len(ranked_valid)} (SKIP excluded: {len(ranked_skipped)}, INELIGIBLE excluded: {len(ranked_ineligible)})
         **LLM backend:** {MODEL} via OpenRouter
 
         ---
@@ -1277,7 +1407,7 @@ def write_opportunities_report(
     # just THAT it failed.
     unranked_in_report = len([r for r in ranked_valid if r.get("tier") == "UNRANKED"])
     disputed_in_report = len([r for r in ranked_valid if r.get("tier") == "DISPUTED"])
-    total_this_run = len(ranked_valid) + len(ranked_skipped)
+    total_this_run = len(ranked_valid) + len(ranked_skipped) + len(ranked_ineligible)
     if ranking_failed:
         md += (
             textwrap.dedent(f"""
@@ -1302,6 +1432,20 @@ def write_opportunities_report(
             passes disagreed on tier, the job is shown here with **both raw
             scores** — not averaged, not auto-resolved to whichever was lower.
             Treat these as needing a manual look, not as confidently scored.
+
+            ---
+        """).strip()
+            + "\n"
+        )
+
+    if ranked_ineligible:
+        md += (
+            textwrap.dedent(f"""
+            ## 🚫 {len(ranked_ineligible)} OPPORTUNITIES EXCLUDED — NOT ELIGIBLE
+            These require citizenship, residency, or a work permit the
+            candidate doesn't have, with no sponsorship or exception stated
+            (see CANDIDATE_WORK_AUTHORIZATION). Listed below for
+            transparency, not counted toward the tiers above.
 
             ---
         """).strip()
@@ -1333,6 +1477,7 @@ def write_opportunities_report(
     md += _tier_block("TOP PICKS", "🔥")
     md += _tier_block("GOOD FITS", "✅")
     md += _tier_block("WORTH EXPLORING", "📌")
+    md += _tier_block("INELIGIBLE", "🚫", source_list=ranked_ineligible)
 
     ranking_status = "✅ OK"
     if unranked_in_report or disputed_in_report:
@@ -1353,6 +1498,7 @@ def write_opportunities_report(
         | Disputed (two passes disagreed) | {disputed_in_report} |
         | Unranked (fallback) | {unranked_in_report} |
         | SKIP (excluded) | {len(ranked_skipped)} |
+        | INELIGIBLE (excluded) | {len(ranked_ineligible)} |
         | Ranking status | {ranking_status} |
         | Data sources | Serper + Crawl4AI full JD + Company enrichment |
         | Countries targeted | {", ".join(EU_LOCATIONS)} |
@@ -1383,6 +1529,7 @@ def write_opportunities_report(
                     "queries_executed": opps.get("queries_executed", 0),
                     "jobs_scored": len(ranked_valid) - unranked_in_report - disputed_in_report,
                     "jobs_skipped": len(ranked_skipped),
+                    "jobs_ineligible": len(ranked_ineligible),
                     "jobs_unranked": unranked_in_report,
                     "jobs_disputed": disputed_in_report,
                     "ranking_failed": ranking_failed,
@@ -1397,6 +1544,14 @@ def write_opportunities_report(
                         "reason": r.get("concerns", []),
                     }
                     for r in ranked_skipped
+                ],
+                "ineligible_opportunities": [
+                    {
+                        "title": r.get("title", "?"),
+                        "source_url": r.get("source_url", ""),
+                        "reason": r.get("concerns", []),
+                    }
+                    for r in ranked_ineligible
                 ],
                 "search_errors": opps.get("errors", []),
             },
@@ -1436,6 +1591,7 @@ def write_opportunities_report(
         f"  📦 JSON     : {json_path}\n"
         f"  📊 {len(ranked_valid)} opportunities scored | "
         f"{len(ranked_skipped)} SKIP excluded | "
+        f"{len(ranked_ineligible)} INELIGIBLE excluded | "
         f"{opps.get('total_results', 0)} found in {opps.get('queries_executed', 0)} queries | "
         f"Model: {MODEL}"
     )
@@ -1586,6 +1742,20 @@ async def run_pipeline(
             "will have little/no keyword coverage this run."
         )
         cv_data = {}
+
+    # Eligibility fields can't come from the CV document itself (see
+    # CANDIDATE_* definitions above) -- CV_ANALYSIS_CACHE already carries
+    # them for the cached candidate; this is only the fallback for a fresh,
+    # non-cached analysis, and only fills in what's actually missing.
+    if not cv_data.get("citizenship") and CANDIDATE_CITIZENSHIP:
+        cv_data["citizenship"] = CANDIDATE_CITIZENSHIP
+    if not cv_data.get("work_authorization") and CANDIDATE_WORK_AUTHORIZATION:
+        cv_data["work_authorization"] = CANDIDATE_WORK_AUTHORIZATION
+    if not cv_data.get("availability_start") and CANDIDATE_AVAILABILITY_START:
+        cv_data["availability_start"] = CANDIDATE_AVAILABILITY_START
+    if not cv_data.get("availability_duration_months") and CANDIDATE_AVAILABILITY_MONTHS:
+        cv_data["availability_duration_months"] = CANDIDATE_AVAILABILITY_MONTHS
+
     keywords = cv_data.get("skills_technical", []) + cv_data.get("tools_frameworks", [])
     roles = cv_data.get("job_titles", [])
 
