@@ -50,7 +50,8 @@ from tools.job_apis import (
 )
 from tools.store import init_db, filter_new, mark_seen, normalize_url
 from tools.email_sender import send_report_email
-from prompts.scoring_agent import SCORING_SYSTEM_PROMPT
+from tools import scoring
+from tools.programs import load_funded_programs, program_to_opportunity
 
 import requests
 
@@ -630,29 +631,21 @@ def search_eu_job_opportunities(search_terms_json: str) -> str:
 
 
 # ════════════════════════════════════════════════════════════════════════════
-#  BATCHED RANKING — retry + count-reconciliation
+#  BATCH RECONCILIATION — id/URL matching, not position
 #
 #  Investigation (2026-08-16, real induced tests against a live ~94-job
-#  dataset) found the single-call ranking design has THREE distinct failure
-#  modes, only one of which the JSON-parse check catches:
-#    1. Large batch (60 jobs) hits the token ceiling and truncates mid-object
-#       -> invalid JSON -> caught by the parse-failure fallback.
-#    2. Even a small batch (15 jobs, well under the token budget) can come
-#       back broken/short due to free-tier model flakiness unrelated to size.
-#    3. The model returns a SYNTACTICALLY VALID, self-terminated array that
-#       silently covers only a handful of the sent jobs (zero SKIPs, zero
-#       errors) -- this is what runs 1 and 2 actually exhibited, and it
-#       passes both "did json.loads() throw" and "was zero exceptions raised".
-#  Batching alone only helps with #1. Retry alone doesn't catch #3, since a
-#  short-but-valid response never trips a retry. Only comparing the actual
-#  returned entries against what was SENT (by job identity, not position)
-#  catches #3 -- that's what _reconcile_batch does.
+#  dataset) found a batched LLM call has a failure mode neither a JSON-parse
+#  check nor a naive retry catches: the model returns a SYNTACTICALLY VALID,
+#  self-terminated array that silently covers only a handful of the sent
+#  items -- passing both "did json.loads() throw" and "was zero exceptions
+#  raised". Only comparing the actual returned entries against what was SENT
+#  (by job identity, not position) catches this -- that's what
+#  _reconcile_batch does. Scoring itself no longer uses an LLM at all (see
+#  tools/scoring.py), so this machinery now exists only for the much
+#  narrower, much rarer eligibility-judgment pass (see
+#  _judge_eligibility_in_batches below) -- kept because the same failure
+#  mode is possible there too, just far less likely given a simpler prompt.
 # ════════════════════════════════════════════════════════════════════════════
-
-RANKING_BATCH_SIZE = 10  # was 15 -- empirically too tight for the model's
-# typical verbosity: successful full-batch responses ran 9,700-11,200 chars
-# against a 6,000-token ceiling, so a majority of live calls truncated
-# mid-object. A smaller batch needs less total output to cover every item.
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -707,10 +700,19 @@ def _filter_internship_only(jobs: list[dict], seniority: str) -> list[dict]:
     apply to. Reuses the same word-boundary intern-hint regex as
     _senior_title_match for consistency (same false-positive risks already
     solved there -- e.g. "International" must never match).
+
+    Funded programs (track == "program", from config/programs.yaml) are
+    exempt -- their names ("DAAD RISE Worldwide", "Erasmus+ Traineeship")
+    are program brands, not job titles, and would otherwise be dropped for
+    not containing the word "internship" despite being exactly the kind of
+    opportunity this filter exists to surface.
     """
     if seniority.lower() not in _INTERN_SENIORITY:
         return jobs
-    return [j for j in jobs if _INTERN_TITLE_HINT_PATTERN.search(j.get("title", "") or "")]
+    return [
+        j for j in jobs
+        if j.get("track") == "program" or _INTERN_TITLE_HINT_PATTERN.search(j.get("title", "") or "")
+    ]
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -730,8 +732,8 @@ def _filter_internship_only(jobs: list[dict], seniority: str) -> list[dict]:
 #  actual reasoning (country, whether it's a French stage/PFE posting via
 #  convention de stage, whether it's an internationally-oriented funded
 #  program, whether it's genuinely remote-anywhere) and is handled by the
-#  ranking LLM's eligibility instructions instead (see
-#  _build_ranking_prompt). This pre-filter exists to catch the clearest
+#  eligibility LLM pass instead (see _build_eligibility_prompt and
+#  _eligibility_auto_resolved). This pre-filter exists to catch the clearest
 #  cases for free, before they ever reach the LLM, and to guarantee they
 #  never slip through regardless of the model's judgment quality that run.
 # ════════════════════════════════════════════════════════════════════════════
@@ -765,49 +767,6 @@ def _eligibility_disqualified_match(title: str, raw_content: str) -> str | None:
     text = f"{title or ''} {raw_content or ''}"
     match = _INELIGIBLE_CONFIRMED_PATTERN.search(text)
     return match.group(1) if match else None
-
-
-def _build_ranking_prompt(batch: list[dict], terms: dict) -> str:
-    candidate = terms.get("candidate_name", "Candidate")
-    seniority = terms.get("seniority_level", "")
-    job_titles = terms.get("job_titles", [])
-    tech_skills = terms.get("skills_technical", [])
-
-    # Only included when the candidate's eligibility facts are actually
-    # known (see CANDIDATE_* env vars / CV_ANALYSIS_CACHE) -- omitting the
-    # section entirely when unknown, rather than sending it with empty
-    # values, tells the LLM (per SCORING_SYSTEM_PROMPT's own instruction)
-    # to skip the eligibility check instead of inventing constraints.
-    eligibility_section = ""
-    if terms.get("citizenship") or terms.get("work_authorization"):
-        availability = terms.get("availability_start", "")
-        duration = terms.get("availability_duration_months", "")
-        availability_str = (
-            f"{availability} for ~{duration} months" if availability else "not specified"
-        )
-        eligibility_section = f"""
-CANDIDATE ELIGIBILITY:
-- Citizenship: {terms.get("citizenship", "not specified")}
-- Work authorization: {terms.get("work_authorization", "not specified")}
-- Availability: {availability_str} (soft constraint -- see ELIGIBILITY CHECK above)
-"""
-
-    return f"""{SCORING_SYSTEM_PROMPT}
-
-CANDIDATE PROFILE:
-- Name: {candidate} ({seniority})
-- Target roles: {", ".join(job_titles[:5])}
-- Key skills: {", ".join(tech_skills[:8])}
-- Full profile: {json.dumps(terms, ensure_ascii=False)[:1500]}
-{eligibility_section}
-OPPORTUNITIES TO RANK ({len(batch)} total):
-{json.dumps(batch, ensure_ascii=False, indent=2)}
-
-IMPORTANT: Return ONLY a valid JSON array with exactly {len(batch)} entries —
-one per opportunity listed above. Each entry MUST include the same "id" value
-as its corresponding input opportunity, so it can be matched back. No
-preamble, no markdown fences.
-"""
 
 
 def _reconcile_batch(
@@ -859,253 +818,148 @@ def _reconcile_batch(
     return matched, missing
 
 
-def _rank_batch_with_retry(batch: list[dict], terms: dict) -> tuple[list[dict], list[dict]]:
-    """Ranks one batch, retrying the whole batch once on any gap.
+ELIGIBILITY_BATCH_SIZE = 10
 
-    Returns (ranked_entries, unranked_fallback_entries) — every job in
-    `batch` appears in exactly one of the two lists.
+# Deterministic exceptions that skip the eligibility LLM call entirely --
+# reasoning is only spent on genuinely ambiguous cases. A French stage/PFE
+# posting, a fully-remote role, explicit positive sponsorship language, or a
+# hand-curated funded program (config/programs.yaml -- see load_funded_programs)
+# all have their eligibility already established by what they ARE, not by
+# something that needs judgment.
+def _eligibility_auto_resolved(item: dict) -> tuple[bool, str] | None:
+    """Returns (eligible, reason) if this item's eligibility is decidable
+    without an LLM call, or None if it genuinely needs judgment."""
+    if item.get("track") == "program":
+        return True, "curated funded program (config/programs.yaml) -- eligibility is inherent to the program"
+
+    title = item.get("title", "") or ""
+    body = f"{title} {item.get('raw_content', '') or ''}"
+
+    if _INTERN_TITLE_HINT_PATTERN.search(title) and re.search(r"\b(stage|pfe|stagiaire)\b", title, re.IGNORECASE):
+        return True, "French stage/PFE posting -- reachable via a school convention de stage"
+
+    intl = scoring.intl_evidence(body)
+    if intl["score"] >= 1.0:
+        return True, f"explicit positive sponsorship/international-friendly language: {intl['signals'][0]}"
+
+    remote = (item.get("remote_policy") or "").lower()
+    if "remote" in remote and "hybrid" not in remote:
+        return True, "fully remote, hire-from-anywhere role"
+
+    return None
+
+
+def _build_eligibility_prompt(batch: list[dict], terms: dict) -> str:
+    """Narrow, single-purpose prompt: eligible yes/no + a one-line reason.
+
+    Deliberately NOT the same prompt as scoring -- scoring is now a pure
+    Python function (see tools/scoring.py) that never needs an LLM at all,
+    so this prompt's only job is the one thing that still needs reasoning:
+    can this specific candidate realistically apply here. A smaller, more
+    constrained ask means a smaller, more reliable response -- there is far
+    less for a free-tier model to truncate or ramble about than a full
+    score+tier+match_reasons+concerns+recommended_angle object.
     """
-    prompt = _build_ranking_prompt(batch, terms)
+    availability = terms.get("availability_start", "")
+    duration = terms.get("availability_duration_months", "")
+    availability_str = f"{availability} for ~{duration} months" if availability else "not specified"
+    return f"""You are checking whether a candidate can REALISTICALLY apply to
+and start each posting below -- not whether they're a good skills fit, only
+whether the posting is actually reachable given citizenship/visa/work
+authorization.
 
-    def _attempt() -> tuple[dict[int, dict], list[dict], bool]:
-        raw = _llm(prompt, max_tokens=8000, temperature=0.3)
+CANDIDATE:
+- Citizenship: {terms.get("citizenship", "not specified")}
+- Work authorization: {terms.get("work_authorization", "not specified")}
+- Availability: {availability_str} (a SOFT constraint -- a date mismatch is
+  not a reason to mark ineligible, note it in "reason" instead if relevant)
+
+RULES:
+- STRICT on country/visa: if the posting requires on-site presence or local
+  employment in a country where the candidate has no citizenship, residency,
+  or permit, mark ineligible UNLESS the posting explicitly offers visa/
+  sponsorship/relocation support. Plain silence on sponsorship in an
+  ordinary posting = ineligible, do not assume it would work out.
+- Never mark ineligible for timing/date reasons alone.
+- If you cannot tell the posting's country/location at all, default to
+  eligible=true (absence of evidence is not evidence of a blocker).
+
+POSTINGS ({len(batch)} total):
+{json.dumps([{"id": b["id"], "title": b["title"], "company": b.get("company", ""), "location": b.get("location", ""), "raw_content": b.get("raw_content", "")[:400]} for b in batch], ensure_ascii=False, indent=2)}
+
+Return ONLY a JSON array with exactly {len(batch)} entries, one per posting,
+each: {{"id": <same id>, "eligible": true|false, "reason": "<one line, only when eligible is false>"}}.
+No preamble, no markdown fences.
+"""
+
+
+def _judge_eligibility_batch_with_retry(batch: list[dict], terms: dict) -> dict[int, dict]:
+    """Judges one batch's eligibility, retrying once on any reconciliation
+    gap. Returns {id: {"eligible": bool, "reason": str}} -- any id missing
+    from the result defaults to eligible=True (fail open: an LLM outage
+    should never cost a real opportunity, only the chance to flag a
+    borderline one)."""
+    prompt = _build_eligibility_prompt(batch, terms)
+
+    def _attempt() -> tuple[dict[int, dict], list[dict]]:
+        raw = _llm(prompt, max_tokens=2000, temperature=0.2)
         try:
             parsed = json.loads(raw)
         except json.JSONDecodeError:
-            return {}, list(batch), False
-        matched, missing = _reconcile_batch(batch, parsed)
-        return matched, missing, True
+            return {}, list(batch)
+        return _reconcile_batch(batch, parsed)
 
-    matched1, missing1, parsed_ok1 = _attempt()
-
+    matched1, missing1 = _attempt()
     if not missing1:
-        return list(matched1.values()), []
+        return {id_: m for id_, m in matched1.items()}
 
-    print(
-        f"  [WARN] Ranking batch: {len(missing1)}/{len(batch)} missing after "
-        f"attempt 1 ({'parse failed' if not parsed_ok1 else 'reconciliation gap'})"
-        f" — retrying batch..."
-    )
-    matched2, missing2, parsed_ok2 = _attempt()
-
-    # Union: a job matched in EITHER attempt is rescued. Retry's value wins
-    # if matched in both (a fresher sample), but nothing found in attempt 1
-    # is thrown away just because the retry didn't also find it.
+    print(f"  [WARN] Eligibility batch: {len(missing1)}/{len(batch)} missing after attempt 1 -- retrying...")
+    matched2, missing2 = _attempt()
     merged = {**matched1, **matched2}
     still_missing = [item for item in batch if item["id"] not in merged]
-
-    unranked_fallback = []
     for item in still_missing:
-        reason = (
-            "parse failure both attempts"
-            if not parsed_ok1 and not parsed_ok2
-            else "missing after retry (batch parsed, item never appeared in output)"
-        )
-        unranked_fallback.append(
-            {
-                **item,
-                "score": None,
-                "tier": "UNRANKED",
-                "concerns": [
-                    f"Automated ranking could not score this job — {reason}."
-                ],
-                "_unranked_reason": reason,
-            }
-        )
-
-    if unranked_fallback:
-        print(
-            f"  [WARN] {len(unranked_fallback)}/{len(batch)} still UNRANKED "
-            f"after retry:"
-        )
-        for item in unranked_fallback:
-            print(
-                f"           - {item.get('title', '?')[:70]!r} | "
-                f"{item.get('source_url', '')[:80]} | "
-                f"reason: {item['_unranked_reason']}"
-            )
-
-    return list(merged.values()), unranked_fallback
+        print(f"  [WARN] Eligibility unresolved for {item.get('title', '?')[:60]!r} after retry -- defaulting to eligible (fail open)")
+    return merged
 
 
-# Investigation (2026-08-17): comparing independent scoring passes across
-# today's runs found 60-62% of comparable jobs disagreed on TIER, not just
-# the two senior-title cases the pre-filter already handles -- swings like
-# WORTH EXPLORING(3) <-> TOP PICKS(10) on ordinary intern-appropriate jobs.
-# Every batch is now scored twice; where the two passes disagree on tier,
-# the job is tagged DISPUTED with both raw scores shown, rather than
-# averaging (fabricates false confidence) or silently picking one.
-DOUBLE_SCORE_RANKING = True
+def _judge_eligibility_in_batches(items: list[dict], terms: dict) -> tuple[dict[int, dict], bool]:
+    """Runs the eligibility LLM pass over items that need actual judgment
+    (deterministic exceptions already routed elsewhere -- see
+    _eligibility_auto_resolved). Returns ({id: judgment}, openrouter_unavailable).
 
-
-def _double_score_batch(
-    batch: list[dict], terms: dict
-) -> tuple[list[dict], dict]:
-    """Ranks one batch twice independently and reconciles the two passes.
-
-    Returns (results, batch_stats). `results` covers every job in `batch`
-    exactly once: genuinely scored (both passes agreed), tier="DISPUTED"
-    (both passes produced a real score but disagreed on tier -- both raw
-    scores are preserved, not blended), or tier="UNRANKED" (neither pass
-    could score it at all). `batch_stats` carries avg_delta/avg_abs_delta
-    over jobs both passes actually scored, so a batch-wide calibration
-    shift is visible instead of hiding inside per-job flags.
+    On CredentialExpiredError, remaining batches are NOT attempted (same
+    OPENROUTER_API_KEY would just fail identically) -- every remaining item
+    defaults to eligible=True with a visible "not verified" note, which is a
+    real reliability improvement over the old design: since scoring is now a
+    pure function, an OpenRouter outage no longer breaks ranking at all, it
+    only means eligibility went unverified for a smaller number of
+    already-ambiguous postings.
     """
-    ranked_a, unranked_a = _rank_batch_with_retry(batch, terms)
-    ranked_b, unranked_b = _rank_batch_with_retry(batch, terms)
+    if not items:
+        return {}, False
 
-    by_id_a = {r["id"]: r for r in ranked_a}
-    by_id_b = {r["id"]: r for r in ranked_b}
-    unranked_by_id_a = {r["id"]: r for r in unranked_a}
-    unranked_by_id_b = {r["id"]: r for r in unranked_b}
-
-    results: list[dict] = []
-    deltas: list[float] = []
-    disputed_count = 0
-
-    for item in batch:
-        id_ = item["id"]
-        a = by_id_a.get(id_)
-        b = by_id_b.get(id_)
-
-        if a is not None and b is not None:
-            score_a = a.get("score")
-            score_b = b.get("score")
-            if a.get("tier") == b.get("tier"):
-                results.append(a)  # agreement -> pass A is canonical
-            else:
-                disputed_count += 1
-                results.append(
-                    {
-                        **a,
-                        "score": None,
-                        "tier": "DISPUTED",
-                        "match_reasons": [],
-                        "concerns": [
-                            f"Score disputed across two independent passes: "
-                            f"{score_a}/10 ({a.get('tier')}) vs "
-                            f"{score_b}/10 ({b.get('tier')}) — manual review "
-                            f"recommended, not averaged or auto-resolved."
-                        ],
-                        "_pass_a": {"score": score_a, "tier": a.get("tier")},
-                        "_pass_b": {"score": score_b, "tier": b.get("tier")},
-                    }
-                )
-            if isinstance(score_a, (int, float)) and isinstance(score_b, (int, float)):
-                deltas.append(score_b - score_a)
-        elif a is not None:
-            results.append(a)  # only pass A scored it -- nothing to compare
-        elif b is not None:
-            results.append(b)  # only pass B scored it
-        else:
-            # Neither pass could score it -- merge whichever fallback exists.
-            fallback = unranked_by_id_a.get(id_) or unranked_by_id_b.get(id_) or {
-                **item,
-                "score": None,
-                "tier": "UNRANKED",
-                "concerns": ["Automated ranking could not score this job in either pass."],
-            }
-            results.append(fallback)
-
-    avg_delta = sum(deltas) / len(deltas) if deltas else 0.0
-    avg_abs_delta = sum(abs(d) for d in deltas) / len(deltas) if deltas else 0.0
-    stats = {
-        "compared": len(deltas),
-        "disputed": disputed_count,
-        "avg_delta": avg_delta,
-        "avg_abs_delta": avg_abs_delta,
-    }
-    return results, stats
-
-
-def _mark_batch_openrouter_unavailable(batch: list[dict]) -> list[dict]:
-    return [
-        {
-            **item,
-            "score": None,
-            "tier": "UNRANKED",
-            "concerns": [
-                "OpenRouter API key invalid — ranking could not be attempted "
-                "(not a parse failure, not model flakiness)."
-            ],
-            "_unranked_reason": "OpenRouter credential expired",
-        }
-        for item in batch
-    ]
-
-
-def _rank_opportunities_in_batches(
-    condensed: list[dict], terms: dict
-) -> tuple[list[dict], int, int, list[dict], bool]:
-    """Ranks all condensed jobs in bounded-size batches with per-batch retry,
-    count reconciliation, and (if DOUBLE_SCORE_RANKING) a second independent
-    pass to catch score/tier disagreement that a single pass can't reveal.
-
-    Returns (ranked, unranked_count, disputed_count, batch_stats,
-    openrouter_unavailable). Every job in `condensed` is guaranteed to
-    appear exactly once in `ranked` — genuinely scored, tier="UNRANKED", or
-    tier="DISPUTED". Asserted, not just hoped for.
-
-    A CredentialExpiredError from OpenRouter is a fundamentally different
-    situation from a parse failure or model flakiness -- retrying the next
-    batch won't help, the same OPENROUTER_API_KEY applies to all of them.
-    Once confirmed dead, remaining batches are marked UNRANKED immediately
-    with a distinct, clearly-labeled reason instead of each one
-    independently re-discovering (and re-printing) the identical failure --
-    that's exactly the "wall of noise with no clear cause" this is meant
-    to avoid.
-    """
-    batches = [
-        condensed[i : i + RANKING_BATCH_SIZE]
-        for i in range(0, len(condensed), RANKING_BATCH_SIZE)
-    ]
-    all_ranked: list[dict] = []
-    total_unranked = 0
-    total_disputed = 0
-    batch_stats: list[dict] = []
+    judgments: dict[int, dict] = {}
     openrouter_unavailable = False
+    batches = [items[i : i + ELIGIBILITY_BATCH_SIZE] for i in range(0, len(items), ELIGIBILITY_BATCH_SIZE)]
 
     for batch_num, batch in enumerate(batches, 1):
         if openrouter_unavailable:
-            all_ranked.extend(_mark_batch_openrouter_unavailable(batch))
-            total_unranked += len(batch)
+            for item in batch:
+                judgments[item["id"]] = {"eligible": True, "reason": "", "_unverified": True}
             continue
-
-        print(f"🤖 Ranking batch {batch_num}/{len(batches)} ({len(batch)} jobs)"
-              f"{' (double-scored)' if DOUBLE_SCORE_RANKING else ''}...")
-
+        print(f"[eligibility] batch {batch_num}/{len(batches)} ({len(batch)} postings)...")
         try:
-            if DOUBLE_SCORE_RANKING:
-                results, stats = _double_score_batch(batch, terms)
-                stats["batch"] = batch_num
-                batch_stats.append(stats)
-                print(
-                    f"   Batch {batch_num}: avg_delta(B-A)={stats['avg_delta']:+.2f} "
-                    f"avg_abs_delta={stats['avg_abs_delta']:.2f} "
-                    f"{stats['disputed']}/{len(batch)} disputed "
-                    f"({stats['compared']} jobs comparable in both passes)"
-                )
-                unranked_entries = [r for r in results if r.get("tier") == "UNRANKED"]
-            else:
-                ranked_entries, unranked_entries = _rank_batch_with_retry(batch, terms)
-                results = ranked_entries + unranked_entries
+            judgments.update(_judge_eligibility_batch_with_retry(batch, terms))
         except CredentialExpiredError as e:
-            print(f"  [CREDENTIAL EXPIRED] {e.source}: {e.reason} — marking this "
-                  f"and all remaining batches UNRANKED rather than retrying "
-                  f"a guaranteed repeat failure.")
+            print(f"  [CREDENTIAL EXPIRED] {e.source}: {e.reason} -- remaining eligibility "
+                  f"checks default to eligible (fail open), flagged as unverified.")
             openrouter_unavailable = True
-            results = _mark_batch_openrouter_unavailable(batch)
-            unranked_entries = results
+            for item in batch:
+                judgments[item["id"]] = {"eligible": True, "reason": "", "_unverified": True}
 
-        all_ranked.extend(results)
-        total_unranked += len(unranked_entries)
-        total_disputed += sum(1 for r in results if r.get("tier") == "DISPUTED")
-
-    assert len(all_ranked) == len(condensed), (
-        f"Ranking count mismatch: {len(all_ranked)} results for "
-        f"{len(condensed)} input jobs — every job must be accounted for."
-    )
-    return all_ranked, total_unranked, total_disputed, batch_stats, openrouter_unavailable
+    for item in items:
+        judgments.setdefault(item["id"], {"eligible": True, "reason": ""})
+    return judgments, openrouter_unavailable
 
 
 def write_opportunities_report(
@@ -1199,8 +1053,8 @@ def write_opportunities_report(
     # Catches only unambiguous, explicitly-stated disqualifiers (ITAR/
     # US-person/no-sponsorship language) -- the broader "can this candidate
     # realistically apply given their citizenship/visa status" judgment
-    # needs actual reasoning and is handled by the ranking LLM instead (see
-    # _build_ranking_prompt's CANDIDATE ELIGIBILITY section).
+    # needs actual reasoning and is handled by the narrow eligibility LLM
+    # pass instead (see _build_eligibility_prompt / _judge_eligibility_in_batches).
     pre_filter_ineligible: list[dict] = []
     still_to_rank = []
     for c in to_rank:
@@ -1231,53 +1085,82 @@ def write_opportunities_report(
             f"US-person/no-sponsorship language)"
         )
 
+    # ── Eligibility: deterministic exceptions first, LLM only for the rest ──
+    # (see _eligibility_auto_resolved / _judge_eligibility_in_batches). A
+    # French stage/PFE posting, a fully-remote role, explicit sponsorship
+    # language, or a curated funded program never spends an LLM call at all.
+    auto_resolved: dict[int, dict] = {}
+    needs_judgment: list[dict] = []
+    for c in to_rank:
+        resolved = _eligibility_auto_resolved(c)
+        if resolved is not None:
+            eligible, reason = resolved
+            auto_resolved[c["id"]] = {"eligible": eligible, "reason": reason}
+        else:
+            needs_judgment.append(c)
+
     print(
-        f"🤖 Ranking {len(to_rank)} opportunities via OpenRouter "
-        f"(batches of {RANKING_BATCH_SIZE}, weighted scoring)...\n"
+        f"🔎 Eligibility: {len(auto_resolved)}/{len(to_rank)} resolved deterministically "
+        f"(program/remote/French stage-PFE/explicit sponsorship language), "
+        f"{len(needs_judgment)} need LLM judgment"
     )
-    ranked, unranked_count, disputed_count, batch_stats, openrouter_unavailable = (
-        _rank_opportunities_in_batches(to_rank, terms)
-    )
+    llm_judgments, openrouter_unavailable = _judge_eligibility_in_batches(needs_judgment, terms)
     if openrouter_unavailable:
         sources_unavailable.append(
             {
                 "source": "OpenRouter",
                 "kind": "CREDENTIAL EXPIRED",
-                "reason": "API key rejected during ranking (confirmed) — see console/logs for the exact call that failed",
+                "reason": "API key rejected during eligibility judgment (confirmed) — "
+                          "affected postings default to eligible (fail open) and are "
+                          "flagged as unverified rather than excluded or blocking the run.",
                 "confirmed": True,
             }
         )
-    ranking_failed = unranked_count > 0
-    if ranking_failed:
-        print(
-            f"  [ERROR] {unranked_count}/{len(to_rank)} opportunities could "
-            f"not be ranked this run even after retry. Falling back to "
-            f"unranked/unfiltered for those specific jobs so nothing is "
-            f"silently dropped."
+    all_judgments = {**auto_resolved, **llm_judgments}
+
+    llm_ineligible: list[dict] = []
+    to_score: list[dict] = []
+    for c in to_rank:
+        judgment = all_judgments.get(c["id"], {"eligible": True, "reason": ""})
+        if not judgment.get("eligible", True):
+            llm_ineligible.append(
+                {**c, "score": None, "tier": "INELIGIBLE", "concerns": [judgment.get("reason", "")]}
+            )
+        else:
+            if judgment.get("_unverified"):
+                c = {**c, "_eligibility_unverified": True}
+            to_score.append(c)
+
+    # ── Deterministic scoring (tools/scoring.py) -- no LLM, no network ──────
+    # Ported from pfzebi/PFE-Hunter after this project's own DISPUTED-tier/
+    # double-scoring machinery confirmed the same thing that project's
+    # commit history documents: an LLM re-scoring the same posting twice
+    # disagrees on tier ~60% of the time, which is noise, not judgment. A
+    # pure function has no such disagreement to cope with.
+    profile_skills = scoring.profile_skill_set(
+        terms.get("skills_technical", []) + terms.get("tools_frameworks", []),
+        free_text=" ".join(terms.get("notable_achievements", [])),
+    )
+    target_roles = terms.get("job_titles", [])
+    ranked: list[dict] = []
+    for c in to_score:
+        result = scoring.score_opportunity(c, profile_skills, target_roles)
+        entry = {**c, **result}
+        if c.get("_eligibility_unverified"):
+            entry["concerns"] = [*entry.get("concerns", []), "Eligibility not independently verified this run (OpenRouter unavailable) — review manually."]
+        entry["recommended_angle"] = (
+            f"Lead with {', '.join(result['matched_skills'][:3])}." if result["matched_skills"] else ""
         )
-    if disputed_count:
-        print(
-            f"  [WARN] {disputed_count}/{len(to_rank)} opportunities had "
-            f"DISPUTED scores — two independent passes disagreed on tier. "
-            f"Shown with both raw scores, not averaged."
-        )
+        ranked.append(entry)
 
     # Pre-filter exclusions never reach the normalize loop below (they were
-    # never LLM output), so give them the same defaults directly.
-    for c in pre_filter_skipped + pre_filter_ineligible:
+    # never scored), so give them the same defaults directly.
+    for c in pre_filter_skipped + pre_filter_ineligible + llm_ineligible:
         c.setdefault("match_reasons", [])
         c.setdefault("recommended_angle", "")
         c.setdefault("apply_url", c.get("source_url", "#"))
 
-    # Normalize: handle both old format (fit_reason) and new format
     for r in ranked:
-        if "fit_reason" in r and "match_reasons" not in r:
-            r["match_reasons"] = [r["fit_reason"]]
-            r["concerns"] = []
-            r["recommended_angle"] = ""
-        r.setdefault("match_reasons", [])
-        r.setdefault("concerns", [])
-        r.setdefault("recommended_angle", "")
         r.setdefault("company", "")
         r.setdefault("location", "")
         r.setdefault("salary", "")
@@ -1285,37 +1168,25 @@ def write_opportunities_report(
         r.setdefault("platform", "unknown")
         r.setdefault("apply_url", r.get("source_url", r.get("link", "#")))
 
-    # Separate SKIP tier from those included in report. Exclusion depends
-    # ONLY on the model's own categorical tier judgment now, not a numeric
-    # score floor. Measured against 95 real scored items from actual LLM
-    # ranking output (2026-08-18): zero cases of a non-SKIP tier paired with
-    # score <= 2 -- SKIP was 0-2, WORTH EXPLORING 3-5, GOOD FITS 5-7.6, TOP
-    # PICKS 7-10, every single time. The old score>2 threshold was fully
-    # redundant with tier=="SKIP" in observed practice; removing it is a
-    # measured no-op, not a guessed simplification. (The old threshold also
-    # needed special-case bypasses for UNRANKED/DISPUTED's score=None,
-    # which are no longer needed now that tier is the only signal.)
-    ranked_valid = [r for r in ranked if r.get("tier") not in ("SKIP", "INELIGIBLE")]
-    ranked_skipped = [r for r in ranked if r.get("tier") == "SKIP"]
-    ranked_skipped = pre_filter_skipped + ranked_skipped
-    ranked_ineligible = [r for r in ranked if r.get("tier") == "INELIGIBLE"]
-    ranked_ineligible = pre_filter_ineligible + ranked_ineligible
+    # Exclusion depends only on tier -- SKIP (score-derived, see
+    # tools/scoring.py's tier thresholds) never reaches the report.
+    ranked_valid = [r for r in ranked if r.get("tier") != "SKIP"]
+    ranked_skipped = pre_filter_skipped + [r for r in ranked if r.get("tier") == "SKIP"]
+    ranked_ineligible = pre_filter_ineligible + llm_ineligible
     if ranked_skipped:
         print(f"   Excluded {len(ranked_skipped)} SKIP-tier jobs from report "
               f"({len(pre_filter_skipped)} by seniority pre-filter, "
-              f"{len(ranked_skipped) - len(pre_filter_skipped)} by LLM)")
+              f"{len(ranked_skipped) - len(pre_filter_skipped)} by scoring)")
     if ranked_ineligible:
         print(f"   Excluded {len(ranked_ineligible)} INELIGIBLE jobs from report "
               f"({len(pre_filter_ineligible)} by eligibility pre-filter, "
-              f"{len(ranked_ineligible) - len(pre_filter_ineligible)} by LLM)")
+              f"{len(ranked_ineligible) - len(pre_filter_ineligible)} by LLM judgment)")
 
-    # Every job in `condensed` must land in exactly one bucket: genuinely
-    # ranked, LLM-tagged SKIP/INELIGIBLE, pre-filter SKIP/INELIGIBLE, or
-    # UNRANKED. This is the same invariant _rank_opportunities_in_batches
-    # already asserts for `to_rank` alone -- this checks it holds end-to-end,
-    # across the pre-filter split.
+    # Every job in `condensed` must land in exactly one bucket. Scoring is
+    # now a pure function that never fails, so unlike the old LLM-ranking
+    # path this invariant is genuinely guaranteed, not just hoped for.
     assert len(ranked_valid) + len(ranked_skipped) + len(ranked_ineligible) == len(condensed), (
-        f"Pre-filter + ranking accounting mismatch: "
+        f"Pre-filter + eligibility + scoring accounting mismatch: "
         f"{len(ranked_valid)} valid + {len(ranked_skipped)} skipped + "
         f"{len(ranked_ineligible)} ineligible != {len(condensed)} total condensed jobs."
     )
@@ -1400,38 +1271,27 @@ def write_opportunities_report(
     )
 
     # Banner is computed HERE, from the list actually being rendered — not
-    # from a count captured back when batching happened — so it can't drift
+    # from a count captured back when the pipeline ran — so it can't drift
     # out of sync with whatever ranked_valid actually contains by the time
-    # the Markdown is built. Batching means failures are now per-batch/
-    # partial rather than all-or-nothing, so this must say HOW MANY, not
-    # just THAT it failed.
-    unranked_in_report = len([r for r in ranked_valid if r.get("tier") == "UNRANKED"])
-    disputed_in_report = len([r for r in ranked_valid if r.get("tier") == "DISPUTED"])
+    # the Markdown is built.
+    #
+    # Scoring itself can no longer fail (tools/scoring.py is a pure
+    # function -- there is no batching, no parsing, nothing to retry), so
+    # the old RANKING_INCOMPLETE/DISPUTED_SCORES banners no longer apply to
+    # anything. What CAN still fail is the narrower eligibility LLM pass;
+    # when it does, affected postings are scored normally (score/tier are
+    # unaffected) but flagged as eligibility-unverified rather than excluded.
+    eligibility_unverified_in_report = len([r for r in ranked_valid if r.get("_eligibility_unverified")])
     total_this_run = len(ranked_valid) + len(ranked_skipped) + len(ranked_ineligible)
-    if ranking_failed:
+    if eligibility_unverified_in_report:
         md += (
             textwrap.dedent(f"""
-            ## ⚠️ RANKING INCOMPLETE THIS RUN
-            **{unranked_in_report}** of **{total_this_run}** opportunities could not
-            be scored this run (LLM ranking failed or returned an incomplete
-            response for one or more batches, even after a retry). They are
-            shown **UNRANKED and UNFILTERED** below — no scoring, no SKIP
-            exclusion applied. Review manually before trusting any as a strong
-            match. Everything else in this report was ranked normally.
-
-            ---
-        """).strip()
-            + "\n"
-        )
-
-    if disputed_in_report:
-        md += (
-            textwrap.dedent(f"""
-            ## ⚖️ {disputed_in_report} OPPORTUNITIES HAD DISPUTED SCORES
-            Every job below was ranked **twice, independently**. Where the two
-            passes disagreed on tier, the job is shown here with **both raw
-            scores** — not averaged, not auto-resolved to whichever was lower.
-            Treat these as needing a manual look, not as confidently scored.
+            ## ⚠️ {eligibility_unverified_in_report} OPPORTUNITIES HAVE UNVERIFIED ELIGIBILITY
+            OpenRouter was unavailable during the eligibility check for these
+            postings. They're scored and shown normally below (scoring never
+            depends on OpenRouter), but their country/visa eligibility was not
+            independently verified this run -- review those manually. See the
+            SOURCE(S) UNAVAILABLE section below for why.
 
             ---
         """).strip()
@@ -1472,19 +1332,14 @@ def write_opportunities_report(
             + "\n"
         )
 
-    md += _tier_block("UNRANKED", "⚠️")
-    md += _tier_block("DISPUTED", "⚖️")
     md += _tier_block("TOP PICKS", "🔥")
     md += _tier_block("GOOD FITS", "✅")
     md += _tier_block("WORTH EXPLORING", "📌")
     md += _tier_block("INELIGIBLE", "🚫", source_list=ranked_ineligible)
 
-    ranking_status = "✅ OK"
-    if unranked_in_report or disputed_in_report:
-        ranking_status = (
-            f"⚠️ {unranked_in_report} unranked, {disputed_in_report} disputed "
-            f"of {total_this_run} — see sections above"
-        )
+    ranking_status = "✅ OK (deterministic scoring — cannot fail)"
+    if eligibility_unverified_in_report:
+        ranking_status = f"⚠️ {eligibility_unverified_in_report} eligibility-unverified of {total_this_run} — see section above"
 
     md += textwrap.dedent(f"""
         ---
@@ -1494,15 +1349,15 @@ def write_opportunities_report(
         |--------|-------|
         | Queries executed | {opps.get("queries_executed", 0)} |
         | Raw results found | {opps.get("total_results", 0)} |
-        | Jobs scored | {len(ranked_valid) - unranked_in_report - disputed_in_report} |
-        | Disputed (two passes disagreed) | {disputed_in_report} |
-        | Unranked (fallback) | {unranked_in_report} |
+        | Jobs scored | {len(ranked_valid)} |
+        | Eligibility unverified | {eligibility_unverified_in_report} |
         | SKIP (excluded) | {len(ranked_skipped)} |
         | INELIGIBLE (excluded) | {len(ranked_ineligible)} |
         | Ranking status | {ranking_status} |
-        | Data sources | Serper + Crawl4AI full JD + Company enrichment |
+        | Data sources | Serper + Crawl4AI full JD + Company enrichment + free APIs + funded programs |
         | Countries targeted | {", ".join(EU_LOCATIONS)} |
-        | LLM model | {MODEL} |
+        | Scoring | deterministic (tools/scoring.py) |
+        | Eligibility LLM model | {MODEL} (only for ambiguous cases) |
         | Report generated | {now} |
 
         ## 🔑 Extracted Keywords
@@ -1522,18 +1377,16 @@ def write_opportunities_report(
                     "seniority": seniority,
                     "target_roles": job_titles,
                     "key_skills": tech_skills,
-                    "llm_model": MODEL,
+                    "scoring": "deterministic (tools/scoring.py)",
+                    "eligibility_llm_model": MODEL,
                     "llm_backend": "OpenRouter",
                     "generated_at": now,
                     "total_raw": opps.get("total_results", 0),
                     "queries_executed": opps.get("queries_executed", 0),
-                    "jobs_scored": len(ranked_valid) - unranked_in_report - disputed_in_report,
+                    "jobs_scored": len(ranked_valid),
                     "jobs_skipped": len(ranked_skipped),
                     "jobs_ineligible": len(ranked_ineligible),
-                    "jobs_unranked": unranked_in_report,
-                    "jobs_disputed": disputed_in_report,
-                    "ranking_failed": ranking_failed,
-                    "double_score_batch_deltas": batch_stats,
+                    "jobs_eligibility_unverified": eligibility_unverified_in_report,
                     "sources_unavailable": sources_unavailable,
                 },
                 "ranked_opportunities": ranked_valid,
@@ -1561,22 +1414,16 @@ def write_opportunities_report(
         encoding="utf-8",
     )
 
-    # RANKING_FAILED is a machine-checkable marker, not just decoration —
+    # SOURCE_UNAVAILABLE is a machine-checkable marker, not just decoration —
     # run_pipeline() greps this exact string to decide whether to flag the
     # email subject line, since an unattended cron run has no one watching
-    # stdout for the "[ERROR]" print above.
+    # stdout for the print output above.
     failure_prefix = ""
-    if ranking_failed:
+    if eligibility_unverified_in_report:
         failure_prefix += (
-            f"⚠️ RANKING_FAILED — {unranked_in_report} of {total_this_run} "
-            "opportunities could not be ranked this run (batch parse failure or "
-            "incomplete response, even after retry); shown UNRANKED below.\n\n"
-        )
-    if disputed_in_report:
-        failure_prefix += (
-            f"⚖️ DISPUTED_SCORES — {disputed_in_report} of {total_this_run} "
-            "opportunities got different tiers across two independent ranking "
-            "passes; shown with both raw scores, not averaged.\n\n"
+            f"⚠️ ELIGIBILITY_UNVERIFIED — {eligibility_unverified_in_report} of {total_this_run} "
+            "opportunities had their eligibility check skipped (OpenRouter unavailable); "
+            "shown normally but flagged for manual review.\n\n"
         )
     if sources_unavailable:
         names = ", ".join(s["source"] for s in sources_unavailable)
@@ -1593,7 +1440,7 @@ def write_opportunities_report(
         f"{len(ranked_skipped)} SKIP excluded | "
         f"{len(ranked_ineligible)} INELIGIBLE excluded | "
         f"{opps.get('total_results', 0)} found in {opps.get('queries_executed', 0)} queries | "
-        f"Model: {MODEL}"
+        f"Scoring: deterministic | Eligibility model: {MODEL}"
     )
 
 
@@ -1822,11 +1669,20 @@ async def run_pipeline(
         )
         sources_unavailable += paid_sources_unavailable
 
+    # ── Funded programs (curated, not discovered) ────────────────────────────
+    # config/programs.yaml -- Mitacs Globalink, DAAD RISE, Erasmus+, etc.
+    # Bypasses search/scraping entirely (see tools/programs.py for why); goes
+    # through the exact same dedup/eligibility/scoring/report pipeline as
+    # everything else once converted to an opportunity dict.
+    program_jobs = [program_to_opportunity(p) for p in load_funded_programs()]
+    if program_jobs:
+        print(f"\n📋 Loaded {len(program_jobs)} funded programs from config/programs.yaml", flush=True)
+
     # Merge + deduplicate all sources before scoring
     # Without this, the same posting found by multiple sources would be
     # scored twice with potentially different scores in the report.
     all_jobs = _deduplicate_jobs(
-        scraped_jobs + direct_jobs + free_api_jobs + paid_api_jobs
+        scraped_jobs + direct_jobs + free_api_jobs + paid_api_jobs + program_jobs
     )
     print(f"\n   Total unique jobs across all sources: {len(all_jobs)}", flush=True)
 
@@ -1850,12 +1706,24 @@ async def run_pipeline(
         )
 
     # ── Persistence: only report jobs not already surfaced in a past run ─────
+    # Funded programs (track == "program") are exempt from "already seen"
+    # exclusion -- a program at the same apply_url stays worth reporting
+    # every run because its urgency genuinely changes as the deadline
+    # approaches (see tools/scoring.py's program_deadline_score). A normal
+    # job posting has no equivalent reason to resurface once already shown.
     db_conn = init_db()
-    new_jobs = filter_new(all_jobs, conn=db_conn)
-    already_seen = len(all_jobs) - len(new_jobs)
+    to_check = [j for j in all_jobs if j.get("track") != "program"]
+    program_items = [j for j in all_jobs if j.get("track") == "program"]
+    # Programs FIRST: write_opportunities_report truncates to the first 60
+    # opportunities, and there are only ever a handful of curated programs
+    # -- they must not lose a slot to whichever ordinary postings happened
+    # to come first this run.
+    new_jobs = program_items + filter_new(to_check, conn=db_conn)
+    already_seen = len(to_check) - (len(new_jobs) - len(program_items))
     print(
         f"   {len(new_jobs)} are NEW since the last run "
-        f"({already_seen} already reported previously — skipped)",
+        f"({already_seen} already reported previously — skipped; "
+        f"{len(program_items)} funded program(s) always included)",
         flush=True,
     )
 
@@ -1886,7 +1754,10 @@ async def run_pipeline(
 
     # Only the jobs actually included in this run's report get marked seen —
     # so a scoring/write failure won't silently blackhole them from tomorrow.
-    mark_seen(new_jobs, conn=db_conn)
+    # Funded programs are excluded here too -- they're never checked via
+    # filter_new (see above), so marking them seen would just be dead
+    # weight in the DB.
+    mark_seen([j for j in new_jobs if j.get("track") != "program"], conn=db_conn)
     db_conn.close()
 
     # ── Step 5: Report writer
@@ -1901,19 +1772,20 @@ async def run_pipeline(
             json_path = json_match.group(1).strip()
             from_addr = from_email or os.getenv("SENDGRID_FROM_EMAIL")
             to_addr = to_email or os.getenv("SENDGRID_TO_EMAIL")
-            # Surface a ranking failure or unavailable source in the subject
-            # line itself — an unattended cron run has no one watching
-            # stdout, so the inbox is the only place this realistically
-            # gets noticed.
-            ranking_failed_this_run = "RANKING_FAILED" in scored_result
+            # Surface an unavailable source or unverified eligibility in the
+            # subject line itself — an unattended cron run has no one
+            # watching stdout, so the inbox is the only place this
+            # realistically gets noticed. (Ranking itself can no longer
+            # fail — tools/scoring.py is a pure function.)
+            eligibility_unverified_this_run = "ELIGIBILITY_UNVERIFIED" in scored_result
             source_unavailable_this_run = "SOURCE_UNAVAILABLE" in scored_result
             base_subject = (
                 email_subject
                 or f"EU Job Hunter Report — {datetime.now().strftime('%Y-%m-%d')}"
             )
             subject_flags = []
-            if ranking_failed_this_run:
-                subject_flags.append("⚠️ RANKING FAILED")
+            if eligibility_unverified_this_run:
+                subject_flags.append("⚠️ ELIGIBILITY UNVERIFIED")
             if source_unavailable_this_run:
                 subject_flags.append("🚫 SOURCE UNAVAILABLE")
             subject = (

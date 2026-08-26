@@ -79,6 +79,11 @@ def test_llm_does_not_burn_through_fallback_chain_on_auth_error():
 
 
 def test_write_opportunities_report_degrades_gracefully_on_openrouter_failure():
+    """Scoring is deterministic now (tools/scoring.py), so a dead OpenRouter
+    no longer breaks ranking at all -- only the narrower eligibility pass
+    ever calls it. The correct degradation is stronger than the old design's
+    UNRANKED fallback: both jobs still get real deterministic scores, and
+    are merely flagged eligibility-unverified rather than excluded."""
     cv_terms = {
         "candidate_name": "Test Candidate",
         "seniority_level": "intern",
@@ -89,8 +94,12 @@ def test_write_opportunities_report_degrades_gracefully_on_openrouter_failure():
         "total_results": 2,
         "queries_executed": 1,
         "opportunities": [
-            {"title": "Real Job 1", "company": "Acme", "source_url": "https://example.com/1", "platform": "unknown"},
-            {"title": "Real Job 2", "company": "Beta", "source_url": "https://example.com/2", "platform": "unknown"},
+            # No location/remote/French/program marker -- both genuinely
+            # need eligibility judgment, so both actually reach _llm.
+            {"title": "Real Job 1", "company": "Acme", "source_url": "https://example.com/1",
+             "platform": "unknown", "raw_content": "Python role, onsite."},
+            {"title": "Real Job 2", "company": "Beta", "source_url": "https://example.com/2",
+             "platform": "unknown", "raw_content": "Python role, onsite."},
         ],
     }
 
@@ -111,6 +120,7 @@ def test_write_opportunities_report_degrades_gracefully_on_openrouter_failure():
     print(result_str)
 
     assert "SOURCE_UNAVAILABLE" in result_str
+    assert "ELIGIBILITY_UNVERIFIED" in result_str
     assert "OpenRouter" in result_str
 
     md_m = re.search(r"Markdown\s*:\s*(.+\.md)", result_str)
@@ -119,20 +129,22 @@ def test_write_opportunities_report_degrades_gracefully_on_openrouter_failure():
     md_content = Path(md_m.group(1).strip()).read_text(encoding="utf-8")
     report = json.loads(Path(json_m.group(1).strip()).read_text(encoding="utf-8"))
 
-    # Both jobs must survive as UNRANKED with the SPECIFIC OpenRouter
-    # reason, not generic "parse failure" noise.
+    # Both jobs must survive as GENUINELY, DETERMINISTICALLY scored -- an
+    # OpenRouter outage no longer blackholes ranking, only eligibility
+    # verification for these two specific (already-ambiguous) postings.
     assert len(report["ranked_opportunities"]) == 2
     for r in report["ranked_opportunities"]:
-        assert r["tier"] == "UNRANKED"
-        assert "OpenRouter" in r["concerns"][0]
-    print("PASS: both jobs UNRANKED with distinct OpenRouter-specific reason, not generic noise")
+        assert isinstance(r["score"], (int, float)), f"expected a real score even with OpenRouter dead, got {r['score']!r}"
+        assert any("not independently verified" in c for c in r.get("concerns", []))
+    assert report["meta"]["jobs_eligibility_unverified"] == 2
+    print("PASS: both jobs still get real deterministic scores, flagged eligibility-unverified (not excluded, not UNRANKED)")
 
     sources = report["meta"]["sources_unavailable"]
     assert any(s["source"] == "OpenRouter" and s["kind"] == "CREDENTIAL EXPIRED" for s in sources)
     print(f"PASS: sources_unavailable in JSON meta correctly includes OpenRouter: {sources}")
 
-    assert "SOURCE(S) UNAVAILABLE" in md_content and "OpenRouter" in md_content
-    print("PASS: rendered Markdown banner names OpenRouter")
+    assert "UNVERIFIED ELIGIBILITY" in md_content and "OpenRouter" in md_content
+    print("PASS: rendered Markdown banner names the eligibility-unverified condition and OpenRouter")
 
 
 # ── 3. run_pipeline's Step 1 (CV extraction) fails loud, not crash ───────

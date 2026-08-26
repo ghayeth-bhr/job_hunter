@@ -26,4 +26,5 @@ dependencies = [
     "python-multipart",
     "crawl4ai>=0.9.0,<1.0",
     "sendgrid",
+    "PyYAML",
 ]

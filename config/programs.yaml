@@ -1,0 +1,63 @@
+# programs.yaml — hand-curated funded internship/research programs.
+#
+# NOT CRAWLED, DELIBERATELY. This project spent real effort discovering that
+# no combination of search queries reliably surfaces these -- verified live
+# (2026-08-18): even a query naming "Mitacs Globalink Research Internship"
+# directly never returned mitacs.ca itself in Google's top 10, only
+# third-party mentions (Facebook posts, scholarship-aggregator sites). A
+# scraper that silently mis-reads a deadline is worse than no scraper at all,
+# because you would trust it. This file gets read directly and turned into
+# opportunities via date arithmetic (tools/programs.py) -- no search engine,
+# no scraping, no LLM.
+#
+# Entries below are ported from a sibling project (pfzebi/PFE-Hunter,
+# github.com/OussemaBenAmeur/pfzebi) solving the identical problem for a
+# classmate at the same school (ENISo) -- real, independently researched
+# facts, not fabricated. `last_verified` matters: check the portal yourself
+# before trusting a deadline that's gone stale.
+
+programs:
+  - name: "Mitacs Globalink Research Internship"
+    org: Mitacs
+    country: Canada
+    apply_url: "https://www.mitacs.ca/en/programs/globalink/globalink-research-internship"
+    deadline: "2027-02-01"
+    eligibility: "Undergraduate/master's students at a partner institution; fully funded, explicitly supports international candidates including visa/permit guidance"
+    last_verified: "2026-08-01"
+    domains: ["Computer Vision", "Machine Learning", "Deep Learning", "AI Engineering"]
+
+  - name: "DAAD RISE Worldwide"
+    org: DAAD
+    country: Germany
+    apply_url: "https://www.daad.de/rise/en/"
+    deadline: "2026-12-15"
+    eligibility: "Undergraduate students, natural sciences/engineering; funded, designed for international students"
+    last_verified: "2026-08-01"
+    domains: ["Computer Vision", "Machine Learning", "Deep Learning"]
+
+  - name: "Erasmus+ Traineeship"
+    org: "European Commission"
+    country: "EU (varies)"
+    apply_url: "https://erasmus-plus.ec.europa.eu/opportunities/individuals/students/traineeships"
+    deadline: "2027-03-01"
+    eligibility: "Enrolled student at an Erasmus+ programme country institution or a partner-country institution with a mobility agreement"
+    last_verified: "2026-08-01"
+    domains: ["Software Engineering", "Computer Vision", "Machine Learning"]
+
+  - name: "KAUST Visiting Student Research Program (VSRP)"
+    org: KAUST
+    country: "Saudi Arabia"
+    apply_url: "https://vsrp.kaust.edu.sa/"
+    deadline: "2027-01-31"
+    eligibility: "Enrolled bachelor's/master's/PhD student; funded, open to international students"
+    last_verified: "2026-08-01"
+    domains: ["Machine Learning", "Deep Learning", "AI Engineering"]
+
+  - name: "INRIA Internship (Stage)"
+    org: Inria
+    country: France
+    apply_url: "https://www.inria.fr/en/join-us/internships"
+    deadline: "2027-01-15"
+    eligibility: "Master's-level student; French research internship, reachable via a school convention de stage"
+    last_verified: "2026-08-01"
+    domains: ["Machine Learning", "Deep Learning", "Computer Vision", "Distributed Systems"]
